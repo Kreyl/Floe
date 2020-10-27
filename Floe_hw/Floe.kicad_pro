@@ -409,7 +409,7 @@
     },
     "net_format_name": "",
     "page_layout_descr_file": "",
-    "plot_directory": "",
+    "plot_directory": "Factory",
     "spice_adjust_passive_values": false,
     "spice_external_command": "spice \"%I\"",
     "subpart_first_id": 65,
@@ -417,7 +417,7 @@
   },
   "sheets": [
     [
-      "909dadf1-61a5-4027-a480-dd89f232e874",
+      "9ba8df4f-7b2c-4f89-9ad3-f15777758f25",
       ""
     ]
   ],
