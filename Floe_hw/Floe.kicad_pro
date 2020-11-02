@@ -117,15 +117,15 @@
         "solder_mask_clearance": 0.0,
         "solder_mask_min_width": 0.0,
         "solder_paste_clearance": 0.0,
-        "solder_paste_margin_ratio": 0.0
+        "solder_paste_margin_ratio": -0.0
       },
       "track_widths": [
-        0.15
+        0.0
       ],
       "via_dimensions": [
         {
-          "diameter": 0.7,
-          "drill": 0.3
+          "diameter": 0.0,
+          "drill": 0.0
         }
       ],
       "zones_allow_external_fillets": false,
@@ -348,19 +348,12 @@
         "microvia_drill": 0.1,
         "name": "Wide",
         "nets": [
-          "+3.3V",
-          "+5V",
           "+BATT",
-          "/PWR_CTRLED",
-          "/PWR_UNST_ALWAYS",
-          "/SD_PWR",
-          "/SPK_M",
-          "/SPK_P",
+          "/LED_B",
+          "/LED_G",
+          "/LED_R",
           "GND",
-          "PwrMCU",
-          "PwrUnst",
-          "VAA",
-          "VCC"
+          "PwrMCU"
         ],
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
@@ -380,7 +373,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "specctra_dsn": "",
+      "specctra_dsn": "Floe.dsn",
       "step": "",
       "vmrl": "",
       "vrml": ""
@@ -417,7 +410,7 @@
   },
   "sheets": [
     [
-      "9ba8df4f-7b2c-4f89-9ad3-f15777758f25",
+      "f8347384-9093-4422-8e2f-854230398357",
       ""
     ]
   ],
