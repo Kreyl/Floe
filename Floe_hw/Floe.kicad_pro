@@ -45,7 +45,7 @@
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": false,
-          "min_clearance": 0.25
+          "min_clearance": 0.3
         }
       },
       "diff_pair_dimensions": [
@@ -114,18 +114,18 @@
         "min_via_annular_width": 0.049999999999999996,
         "min_via_annulus": 0.049999999999999996,
         "min_via_diameter": 0.39999999999999997,
-        "solder_mask_clearance": 0.0,
-        "solder_mask_min_width": 0.0,
+        "solder_mask_clearance": 0.06,
+        "solder_mask_min_width": 0.15,
         "solder_paste_clearance": 0.0,
-        "solder_paste_margin_ratio": 0.0
+        "solder_paste_margin_ratio": -0.0
       },
       "track_widths": [
-        0.15
+        0.0
       ],
       "via_dimensions": [
         {
-          "diameter": 0.7,
-          "drill": 0.3
+          "diameter": 0.0,
+          "drill": 0.0
         }
       ],
       "zones_allow_external_fillets": false,
@@ -322,7 +322,7 @@
     "classes": [
       {
         "bus_width": 12.0,
-        "clearance": 0.15,
+        "clearance": 0.18,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -332,14 +332,14 @@
         "name": "Default",
         "pcb_color": "rgba(0, 0, 0, 0.000)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.15,
+        "track_width": 0.18,
         "via_diameter": 0.7,
         "via_drill": 0.3,
         "wire_width": 6.0
       },
       {
         "bus_width": 12.0,
-        "clearance": 0.15,
+        "clearance": 0.18,
         "diff_pair_gap": 0.25,
         "diff_pair_via_gap": 0.25,
         "diff_pair_width": 0.2,
@@ -348,10 +348,10 @@
         "microvia_drill": 0.1,
         "name": "Wide",
         "nets": [
-          "+3.3V",
-          "+5V",
+          "+3v3",
+          "+5v",
           "+BATT",
-          "/PWR_CTRLED",
+          "/NPX_PWR",
           "/PWR_UNST_ALWAYS",
           "/SD_PWR",
           "/SPK_M",
@@ -380,7 +380,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "specctra_dsn": "",
+      "specctra_dsn": "Floe.dsn",
       "step": "",
       "vmrl": "",
       "vrml": ""
@@ -417,7 +417,7 @@
   },
   "sheets": [
     [
-      "d97879ec-82ff-4b36-be27-ae9f7ddc0da0",
+      "2f4446b2-2d41-48c0-b1cf-b2642297a954",
       ""
     ]
   ],
