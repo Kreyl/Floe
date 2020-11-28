@@ -25,6 +25,15 @@ struct LedState_t {
         Hsv[6] = Right.Hsv[6];
         return *this;
     }
+    LedState_t() {
+        Hsv[0] = hsvBlack;
+        Hsv[1] = hsvBlack;
+        Hsv[2] = hsvBlack;
+        Hsv[3] = hsvBlack;
+        Hsv[4] = hsvBlack;
+        Hsv[5] = hsvBlack;
+        Hsv[6] = hsvBlack;
+    }
     LedState_t(ColorHSV_t c0, ColorHSV_t c1, ColorHSV_t c2, ColorHSV_t c3, ColorHSV_t c4, ColorHSV_t c5, ColorHSV_t c6) {
         Hsv[0] = c0;
         Hsv[1] = c1;
@@ -52,16 +61,41 @@ struct LedState_t {
 
 static LedState_t CurrState { hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack };
 
-LedState_t Seq1[] = {
-        { hsvRed, hsvGreen, hsvBlue, hsvYellow, hsvMagenta, hsvCyan, hsvWhite },
-        { hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack },
-        { hsvGreen, hsvGreen, hsvGreen, hsvGreen, hsvGreen, hsvGreen, hsvGreen },
-        { hsvGreen, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack },
-        { hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack, hsvBlack },
+
+#define MAX_CLR_CNT     7
+class Effect_t {
+private:
+    uint32_t ClrCnt;
+    ColorHSV_t ClrArr[MAX_CLR_CNT];
+
+public:
+    Effect_t(ColorHSV_t Clr0, ColorHSV_t Clr1) {
+        ClrCnt = 2;
+        ClrArr[0] = Clr0;
+        ClrArr[1] = Clr1;
+        ConstructNewState();
+    }
+    Effect_t(ColorHSV_t Clr0, ColorHSV_t Clr1, ColorHSV_t Clr2, ColorHSV_t Clr3) {
+        ClrCnt = 4;
+        ClrArr[0] = Clr0;
+        ClrArr[1] = Clr1;
+        ClrArr[2] = Clr2;
+        ClrArr[3] = Clr3;
+        ConstructNewState();
+    }
+    LedState_t State;
+    void ConstructNewState() {
+        for(uint32_t i=0; i<LED_CNT; i++) {
+            uint32_t ClrIndx = Random::Generate(0, ClrCnt-1);
+            State.Hsv[i] = ClrArr[ClrIndx];
+        }
+    }
 };
 
-static LedState_t *CurrSeq = Seq1;
-static uint32_t CurrStep = 0;
+Effect_t EffIdle{hsvBlack, hsvBlue, {240, 100, 60}, {240, 100, 30}};
+
+
+Effect_t *CurrEff = &EffIdle;
 
 namespace Effects {
 
@@ -71,15 +105,12 @@ void Task() {
     if(Time.ElapsedSince(Start) < Delay) return;
     Start = Time.GetCurrent();
     // Get Target State
-    uint32_t TargetStep = CurrStep + 1;
-    if(TargetStep >= countof(Seq1)) TargetStep = 0; // XXX
-    LedState_t *TargetState = &CurrSeq[TargetStep];
+    LedState_t *TargetState = &CurrEff->State;
     // Adjust
     Delay = CurrState.Adjust(TargetState, 360);
 //    Printf("%u: %u %u %u\r", Delay, CurrState[0].H, CurrState[0].S, CurrState[0].V);
     if(Delay == 0) {
-        CurrStep = TargetStep;
-        Delay = 99;
+        CurrEff->ConstructNewState();
     }
     // Show it
     CurrState.ToRGBs(RGBs);
