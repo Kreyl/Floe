@@ -1,4 +1,4 @@
-785750244648746
+711368734517059
 Antennas
 ANT_868_10d4x36
 PCB 75.7x37.5, AntPcb 14.8mm
@@ -105,20 +105,6 @@ Meander 868 for 16x36x1.5mm
 18
 1
 Antennas
-ANT_868_Spear
-
-
-0
-1
-1
-Antennas
-ANT_868_Spear_inverted
-
-
-0
-1
-1
-Antennas
 ANT_2400_MEANDER
 
 
@@ -182,13 +168,6 @@ Firefly_2400
 1
 1
 Antennas
-IFA_LoRa_BEST
-
-
-0
-2
-2
-Antennas
 LcktSnd_2d41
 
 
@@ -216,20 +195,6 @@ MagicStick
 0
 1
 1
-BGA
-BGA-294_21x14_12.0x7.5mm
-
-
-0
-167
-167
-BGA
-BGA-529_23x23_15.0x15.0mm
-
-
-0
-396
-396
 BtnsSwitches
 BTN_4PIN_12mm
 
@@ -301,27 +266,6 @@ BUZZER_HPM14A
 2
 2
 BtnsSwitches
-Btn_G78Y
-
-
-0
-6
-2
-BtnsSwitches
-Btn_K51624SA-01
-
-
-0
-8
-3
-BtnsSwitches
-CUS-14TB
-
-
-0
-12
-6
-BtnsSwitches
 DIP_DIP_X4
 
 
@@ -384,13 +328,6 @@ SW_LKLS7SS12F19G5
 0
 3
 3
-BtnsSwitches
-SW_MSK-12C02
-
-
-0
-9
-4
 BtnsSwitches
 SW_PUSH_6mm
 https://www.omron.com/ecb/products/pdf/en-b3f.pdf
@@ -567,13 +504,6 @@ CAP_0402
 2
 2
 Capacitors
-CAP_0402_large
-
-
-0
-2
-2
-Capacitors
 CAP_0603
 
 
@@ -582,13 +512,6 @@ CAP_0603
 2
 Capacitors
 CAP_0603_Silks
-
-
-0
-2
-2
-Capacitors
-CAP_0603_large
 
 
 0
@@ -699,13 +622,6 @@ Chequerwise 9-pin
 0
 9
 9
-Connectors
-Concentric_D2d5_9d5_17
-Concentric circles
-
-0
-3
-3
 Connectors
 Concentric_D5xD14
 Concentric circles
@@ -1106,13 +1022,6 @@ Single pad
 1
 1
 Connectors
-Pad_2x4_Rect
-Single pad
-
-0
-1
-1
-Connectors
 RJ11_TJ3-4P4C
 
 
@@ -1204,13 +1113,6 @@ Single-line SMD connector 9-pin
 9
 9
 Connectors
-SM11B_SRSS_TB
-
-
-0
-13
-12
-Connectors
 SM15B_SRSS_TB
 
 
@@ -1301,13 +1203,6 @@ USB conn type B: USBB-1J
 0
 5
 5
-Connectors
-USB_C_MOLEX_1054500101
-
-
-0
-28
-28
 Connectors
 USBmicro_MOLEX_1050170001
 
@@ -1455,27 +1350,6 @@ uUSB_Micro5P
 0
 7
 7
-DIP
-DIP-8_296_ELL
-
-
-0
-8
-8
-DIP
-DIP-16_296_ELL
-
-
-0
-16
-16
-Diodes
-DFN1006
-
-
-0
-2
-2
 Diodes
 SMA_DO214AC
 
@@ -1518,27 +1392,6 @@ SOD923
 0
 2
 2
-Display
-7Segx4
-
-
-0
-36
-36
-Display
-Round2_2
-
-
-0
-30
-30
-FFC
-Conn_0d5x8
-
-
-0
-8
-8
 Inductors
 13x13
 
@@ -1554,40 +1407,12 @@ Inductors
 2
 2
 Inductors
-CKST0502
-
-
-0
-2
-2
-Inductors
-CKST0603
-
-
-0
-2
-2
-Inductors
-DLW5ATN111
-
-
-0
-4
-4
-Inductors
 DLW21SN
 
 
 0
 4
 4
-Inductors
-FDV0530
-
-
-0
-2
-2
 Inductors
 IHLP2525
 
@@ -1722,13 +1547,6 @@ AAx2 battery holder (BH431/BH621)
 2
 2
 Installation
-BATTERY_AAA_X2_PLUS_LEFT
-AAx2 battery holder (BH431/BH621)
-
-0
-2
-2
-Installation
 BATTERY_AAA_X3
 AAAx3 battery holder (BH431A)
 
@@ -1779,13 +1597,6 @@ BUZZER_HPA17A
 2
 Installation
 BUZZER_HPM14A
-
-
-0
-2
-2
-Installation
-BUZZER_KLJ-09650-3027
 
 
 0
@@ -1946,13 +1757,6 @@ LED_0603_ch
 2
 2
 LEDs
-LED_0603_large
-
-
-0
-2
-2
-LEDs
 LED_0805
 
 
@@ -2099,13 +1903,6 @@ SMD_R_TEST_2
 0
 2
 2
-LEDs
-TO_2106
-
-
-0
-2
-2
 LGA
 10_2X2
 
@@ -2170,13 +1967,6 @@ QFP TQFP LQFP
 100
 100
 LQFP_TQFP
-QFP-44_10x10_Pitch0.8mm
-
-
-0
-44
-44
-LQFP_TQFP
 QFP-144_20x20_Pitch0.5mm
 
 
@@ -2187,62 +1977,6 @@ LQFP_TQFP
 TQFP-32_7x7_Pitch0.8mm
 
 
-0
-32
-32
-Logo
-Logo_18d3x6
-
-
-0
-0
-0
-Logo
-Logo_33d5x11
-
-
-0
-0
-0
-Logo
-Logo_36d6x12
-
-
-0
-0
-0
-Logo
-Logo_36d6x12_inverted
-
-
-0
-0
-0
-Microphones
-CMM4030
-
-
-0
-9
-5
-Microphones
-CPM211
-
-
-0
-4
-4
-Microphones
-SPH0644
-
-
-0
-5
-5
-Modules
-BK8000L_F-6188
-
-f6188, f-6188, bk8000l
 0
 32
 32
@@ -2274,20 +2008,6 @@ F3188
 0
 43
 43
-Modules
-JDY-08
-
-JDY-08 BLE
-0
-24
-24
-Modules
-JDY-08_HandSoldering
-
-JDY-08 BLE
-0
-24
-24
 Modules
 SL3333
 
@@ -2366,13 +2086,6 @@ Hole2d2_out3d5mm
 1
 1
 PCB
-Hole2d4_out4d4mm
-
-
-0
-1
-1
-PCB
 Hole2d4_out4d5mm
 
 
@@ -2409,13 +2122,6 @@ Hole3d2_out4d2mm
 1
 PCB
 Hole3d3_out5d5mm
-
-
-0
-1
-1
-PCB
-Hole3d5_out10mm
 
 
 0
@@ -2846,7 +2552,7 @@ DFN8_2x3
 
 
 0
-9
+12
 9
 QFN_DFN
 DFN12
@@ -2926,7 +2632,7 @@ QFN-32_EP_5x5_Pitch0.5mm
 33
 33
 QFN_DFN
-QFN-44_EP_5x5_Pitch0.4mm_PAD2d55
+QFN-44_EP_5x5_Pitch0.4mm
 
 
 0
@@ -2953,13 +2659,6 @@ QFN-60_EP_7x7_Pitch0.4mm
 0
 61
 61
-QFN_DFN
-QFN-68_EP_8x8_Pitch0.4mm
-
-
-0
-118
-69
 QFN_DFN
 QFN8
 
@@ -3080,13 +2779,6 @@ WSON12
 19
 13
 QFN_DFN
-X2QFN_12
-
-
-0
-12
-12
-QFN_DFN
 mrQFN76
 
 
@@ -3172,13 +2864,6 @@ Silmaril
 2
 Resistors
 RES_0402
-
-
-0
-2
-2
-Resistors
-RES_0402_large
 
 
 0
@@ -3436,13 +3121,6 @@ SO16 150mil
 0
 16
 16
-SO_DIL_TSSOP
-SO20_300MIL
-
-
-0
-20
-20
 SO_DIL_TSSOP
 SSOP28
 

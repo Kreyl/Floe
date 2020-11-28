@@ -8,6 +8,8 @@
   (layers
     (0 "F.Cu" signal)
     (31 "B.Cu" signal)
+    (34 "B.Paste" user)
+    (35 "F.Paste" user)
     (36 "B.SilkS" user "B.Silkscreen")
     (37 "F.SilkS" user "F.Silkscreen")
     (38 "B.Mask" user)
@@ -22,18 +24,20 @@
   (setup
     (stackup
       (layer "F.SilkS" (type "Top Silk Screen") (color "Black"))
+      (layer "F.Paste" (type "Top Solder Paste"))
       (layer "F.Mask" (type "Top Solder Mask") (color "White") (thickness 0.01))
       (layer "F.Cu" (type "copper") (thickness 0.035))
       (layer "dielectric 1" (type "core") (thickness 1.51) (material "FR4") (epsilon_r 4.5) (loss_tangent 0.02))
       (layer "B.Cu" (type "copper") (thickness 0.035))
       (layer "B.Mask" (type "Bottom Solder Mask") (color "White") (thickness 0.01))
+      (layer "B.Paste" (type "Bottom Solder Paste"))
       (layer "B.SilkS" (type "Bottom Silk Screen") (color "Black"))
       (copper_finish "None")
       (dielectric_constraints no)
     )
     (aux_axis_origin 145.25 94)
     (pcbplotparams
-      (layerselection 0x00010f0_ffffffff)
+      (layerselection 0x000000c_7ffffffe)
       (disableapertmacros false)
       (usegerberextensions true)
       (usegerberattributes true)

@@ -381,7 +381,7 @@
       "idf": "",
       "netlist": "",
       "specctra_dsn": "Floe.dsn",
-      "step": "",
+      "step": "Factory/Floe.step",
       "vmrl": "",
       "vrml": ""
     },
@@ -417,7 +417,7 @@
   },
   "sheets": [
     [
-      "2f4446b2-2d41-48c0-b1cf-b2642297a954",
+      "0721c625-9a77-4764-b093-55b2f79790e8",
       ""
     ]
   ],

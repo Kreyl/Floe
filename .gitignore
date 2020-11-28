@@ -1,2 +1,9 @@
 Floe_hw/Floe-backups/
 *.dsn
+*.xml
+*.prefs
+Floe_hw/Factory/BOM_15-11-2020.xlsx
+*.csv
+*.dxf
+Floe_hw/Gerber/FloePaste.zip
+*.step
