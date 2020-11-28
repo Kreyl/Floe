@@ -4,7 +4,7 @@
 #include "LEDs.h"
 #include "shell.h"
 #include "Settings.h"
-#include "main.h"
+#include "Effects.h"
 
 #if 1 // ======================== Variables & prototypes =======================
 static const UartParams_t CmdUartParams(115200, CMD_UART_PARAMS);
@@ -42,6 +42,7 @@ int main(void) {
 
     Time.Init();
     Leds::Init();
+    Effects::Init();
 
 //    Settings.Load();
 
@@ -60,19 +61,20 @@ int main(void) {
 
 __attribute__((__noreturn__))
 void ITask() {
-    int N=0;
     while(true) {
 //        Iwdg::Reload();
-        if(Time.ElapsedSince(Start) > 306) {
-            Start = Time.GetCurrent();
-//            Printf("Aga\r");
+        Effects::Task();
 
-            Pic[N] = clBlack;
-            N++;
-            if(N>6) N=0;
-            Pic[N] = clGreen;
-            Leds::ShowPic(Pic);
-        }
+//        if(Time.ElapsedSince(Start) > 306) {
+//            Start = Time.GetCurrent();
+////            Printf("Aga\r");
+//
+//            Pic[N] = clBlack;
+//            N++;
+//            if(N>6) N=0;
+//            Pic[N] = clGreen;
+//            Leds::ShowPic(Pic);
+//        }
 
 
 //        switch(Settings.Mode) {

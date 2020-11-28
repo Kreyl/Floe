@@ -332,6 +332,44 @@ struct ColorHSV_t {
         return (Delay2 > Delay)? Delay2 : Delay;
     }
 
+    uint32_t AdjustAndGetDelay(ColorHSV_t &Target, uint32_t SmoothValue) {
+        uint32_t Delay, Delay2;
+        if(V == 0 or Target.V == 0) { // One is black
+            if(V == 0) {
+                H = Target.H;
+                S = Target.S;
+            }
+            if(V == Target.V) return 0;
+            Delay = ClrCalcDelay(V, SmoothValue);
+            if     (V < Target.V) V++;
+            else if(V > Target.V) V--;
+            return Delay;
+        }
+        else {
+            if(H == Target.H) Delay = 0;
+            else {
+                Delay = ClrCalcDelay(H, SmoothValue);
+                if     (H < Target.H) H++;
+                else if(H > Target.H) H--;
+            }
+            if(S == Target.S) Delay2 = 0;
+            else {
+                Delay2 = ClrCalcDelay(S, SmoothValue);
+                if     (S < Target.S) S++;
+                else if(S > Target.S) S--;
+            }
+            if(Delay2 > Delay) Delay = Delay2;
+            if(V == Target.V) Delay2 = 0;
+            else {
+                Delay2 = ClrCalcDelay(V, SmoothValue);
+                if     (V < Target.V) V++;
+                else if(V > Target.V) V--;
+            }
+            return (Delay2 > Delay)? Delay2 : Delay;
+        }
+    }
+
+
     void ToRGB(uint8_t *PR, uint8_t *PG, uint8_t *PB) const {
         // Calc chroma: 0...255
         int32_t C = ((int32_t)V * (int32_t)S * 255) / 10000;

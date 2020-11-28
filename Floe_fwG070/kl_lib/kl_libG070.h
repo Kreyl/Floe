@@ -632,6 +632,7 @@ public:
 };
 
 // Place somewhere Time_t Time{TIME_TIMER};
+extern Time_t Time;
 
 static inline void DelayLoop(volatile uint32_t ACounter) { while(ACounter--); }
 #endif
