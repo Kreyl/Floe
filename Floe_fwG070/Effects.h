@@ -8,6 +8,5 @@
 #pragma once
 
 namespace Effects {
-    void Init();
     void Task();
 };

@@ -152,10 +152,10 @@ void BaseUart_t::Init() {
         RCC->CCIPR &= ~RCC_CCIPR_USART2SEL;
         RCC->CCIPR |= ((uint32_t)Params->ClkSrc) << RCC_CCIPR_USART2SEL_Pos;
     }
-    if     (Params->Uart == USART1) { EnableAPB2Clk(RCC_APBENR2_USART1EN); }
-    else if(Params->Uart == USART2) { EnableAPB1Clk(RCC_APBENR1_USART2EN); }
-    else if(Params->Uart == USART3) { EnableAPB1Clk(RCC_APBENR1_USART3EN); }
-    else if(Params->Uart == USART4) { EnableAPB1Clk(RCC_APBENR1_USART4EN); }
+    if     (Params->Uart == USART1) { Rcc::EnableAPB2Clk(RCC_APBENR2_USART1EN); }
+    else if(Params->Uart == USART2) { Rcc::EnableAPB1Clk(RCC_APBENR1_USART2EN); }
+    else if(Params->Uart == USART3) { Rcc::EnableAPB1Clk(RCC_APBENR1_USART3EN); }
+    else if(Params->Uart == USART4) { Rcc::EnableAPB1Clk(RCC_APBENR1_USART4EN); }
 #endif // Clock
 
     OnClkChange();  // Setup baudrate
@@ -188,7 +188,7 @@ void BaseUart_t::Shutdown() {
 void BaseUart_t::OnClkChange() {
     switch(Params->ClkSrc) {
         case uartclkPCLK:   Params->Uart->BRR = APBFreqHz / Params->Baudrate; break;
-        case uartclkSYSCLK: Params->Uart->BRR = GetSysClkHz() / Params->Baudrate; break;
+        case uartclkSYSCLK: Params->Uart->BRR = Rcc::GetSysClkHz() / Params->Baudrate; break;
         case uartclkHSI:    Params->Uart->BRR = HSI_FREQ_HZ / Params->Baudrate; break;
         case uartclkLSE:    Params->Uart->BRR = LSE_FREQ_HZ / Params->Baudrate; break;
     } // switch

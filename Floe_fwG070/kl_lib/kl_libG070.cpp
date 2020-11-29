@@ -442,7 +442,6 @@ void Time_t::Init() {
     Timer_t::Init();
     SetTopValue(0xFFFF);
     SetupPrescaler(1000); // 1000 Hz => 1ms tick
-    Timer_t::GenerateUpdateEvt();
     Enable();
 }
 
@@ -493,7 +492,7 @@ void SetTimeout(uint32_t ms) {
 }
 
 void InitAndStart(uint32_t ms) {
-    EnableLSI();    // Start LSI
+    Rcc::EnableLSI();    // Start LSI
     SetTimeout(ms); // Start IWDG
     Enable();
 }

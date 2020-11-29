@@ -94,6 +94,9 @@ enum uartClk_t {uartclkPCLK = 0, uartclkSYSCLK = 1, uartclkHSI = 2, uartclkLSE =
 
 extern uint32_t AHBFreqHz, APBFreqHz;
 
+namespace Rcc {
+
+// === Enable ===
 static inline void EnableAHBClk(uint32_t AhbMsk) {
     RCC->AHBENR |= AhbMsk;
     // Delay after an RCC peripheral clock enabling
@@ -115,14 +118,37 @@ static inline void EnableAPB2Clk(uint32_t Apb2Msk) {
     (void)tmpreg;
 }
 
+// === Reset ===
+static inline void ResetAHB(uint32_t AhbMsk) {
+    RCC->AHBRSTR |= AhbMsk;
+    RCC->AHBRSTR &= ~AhbMsk;
+}
+
+static inline void ResetAPB1(uint32_t Apb1Msk) {
+    RCC->APBRSTR1 |= Apb1Msk;
+    RCC->APBRSTR1 &= ~Apb1Msk;
+}
+
+static inline void ResetAPB2(uint32_t Apb2Msk) {
+    RCC->APBRSTR2 |= Apb2Msk;
+    RCC->APBRSTR2 &= ~Apb2Msk;
+}
+
+
 static inline void EnableLSI() {
     RCC->CSR |= RCC_CSR_LSION;
     while(!(RCC->CSR & RCC_CSR_LSIRDY));
 }
 
-static inline uint32_t GetSysClkHz() { // TODO
+// === Get === // TODO
+static inline uint32_t GetSysClkHz() {
     return 64000000;
 }
+static inline uint32_t GetApbClkHz() {
+    return 64000000;
+}
+
+} // namespace
 #endif
 
 #if 1 // ===================== Simple pin manipulations ========================
@@ -361,8 +387,8 @@ public:
     // Example: boMSB, cpolIdleLow, cphaFirstEdge, sbFdiv2, bitn8
     void Setup(BitOrder_t BitOrder, CPOL_t CPOL, CPHA_t CPHA, int32_t Bitrate_Hz, BitNumber_t BitNumber) const;
     void SetupSlave(BitOrder_t BitOrder, CPOL_t CPOL, CPHA_t CPHA, BitNumber_t BitNumber) const;
-    void Enable ()       const { PSpi->CR1 |=  SPI_CR1_SPE; }
-    void Disable()       const { PSpi->CR1 &= ~SPI_CR1_SPE; }
+    void Enable () const { PSpi->CR1 |=  SPI_CR1_SPE; }
+    void Disable() const { PSpi->CR1 &= ~SPI_CR1_SPE; }
     void Reset() const;
 
     // CRC
@@ -428,7 +454,7 @@ public:
     SPI_TypeDef *PSpi;
     I2S_t(SPI_TypeDef *ASpi) : PSpi(ASpi) {}
     void SetupI2SMasterTx16Bit() const;
-    void SetPrescaler(uint16_t Psc) const { PSpi->I2SPR = Psc; }
+    void SetPrescaler(uint16_t Psc) const { PSpi->I2SPR = 2U; }
     void Enable()  const { PSpi->I2SCFGR |=  SPI_I2SCFGR_I2SE; }
     void Disable() const { PSpi->I2SCFGR &= ~SPI_I2SCFGR_I2SE; }
     void Reset() const;
@@ -631,8 +657,8 @@ public:
     uint32_t ElapsedSince(uint32_t Start);
 };
 
-// Place somewhere Time_t Time{TIME_TIMER};
 extern Time_t Time;
+// Place somewhere Time_t Time{TIME_TIMER};
 
 static inline void DelayLoop(volatile uint32_t ACounter) { while(ACounter--); }
 #endif
@@ -755,7 +781,7 @@ public:
         } __attribute__((packed));
     } __attribute__((packed));
     void Init() {
-        EnableAPB2Clk(RCC_APBENR2_ADCEN);
+        Rcc::EnableAPB2Clk(RCC_APBENR2_ADCEN);
         ADC->CCR = 0b0010UL << 18;      // Pescaler=4 (64/4 = 16)
         ADC1->CFGR2 = 0b10UL << 30;     // Clock: PCLK/4
         ADC1->SMPR = 0b111;             // Sampling time: 160 ADC cycles

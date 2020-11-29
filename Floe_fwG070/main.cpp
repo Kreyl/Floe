@@ -5,6 +5,8 @@
 #include "shell.h"
 #include "Settings.h"
 #include "Effects.h"
+#include "kl_i2cG070.h"
+#include "lis3dh.h"
 
 #if 1 // ======================== Variables & prototypes =======================
 static const UartParams_t CmdUartParams(115200, CMD_UART_PARAMS);
@@ -14,6 +16,7 @@ void ITask();
 
 Settings_t Settings;
 Adc_t Adc;
+Lis3d_t Lis {&i2c2};
 
 // Animation
 Time_t Time{TIME_TIMER};
@@ -42,8 +45,10 @@ int main(void) {
 
     Time.Init();
     Leds::Init();
-    Effects::Init();
+    i2c2.Init();
+    i2c2.ScanBus();
 
+    Lis.Init();
 //    Settings.Load();
 
     // ADC for temperature measurement. Will trigger periodically by TIM6. IRQ-driven.
@@ -159,8 +164,8 @@ void ClockInit() {
     (void)RCC->APBRSTR2;
 
     // Enable syscfg and pwr
-    EnableAPB2Clk(RCC_APBENR2_SYSCFGEN);
-    EnableAPB1Clk(RCC_APBENR1_PWREN);
+    Rcc::EnableAPB2Clk(RCC_APBENR2_SYSCFGEN);
+    Rcc::EnableAPB1Clk(RCC_APBENR1_PWREN);
     // Set Flash latency
     tmpreg = FLASH->ACR;
     tmpreg &= ~FLASH_ACR_LATENCY;
@@ -187,7 +192,7 @@ void ClockInit() {
     // Wait until done
     while((RCC->CFGR & RCC_CFGR_SWS) != (0b010UL << 3));
     // Enable DMA clock
-    EnableAHBClk(RCC_AHBENR_DMA1EN);
+    Rcc::EnableAHBClk(RCC_AHBENR_DMA1EN);
     // ADC clock is SYSCLK: ADCSEL = 0
     RCC->CCIPR &= ~RCC_CCIPR_ADCSEL;
     AHBFreqHz = 64000000;

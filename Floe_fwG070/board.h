@@ -26,6 +26,13 @@
 #define UART_TX_PIN     9
 #define UART_RX_PIN     10
 
+// I2C
+#define SCL2_GPIO       GPIOA
+#define SCL2_PIN        11
+#define SDA2_GPIO       GPIOA
+#define SDA2_PIN        12
+#define I2C2_AF         AF6
+
 // Counts
 #define LED_CNT         7UL // Max
 #define LED_CHNL_CNT    (LED_CNT * 3UL)
@@ -60,6 +67,12 @@
 #if 1 // =========================== SPI =======================================
 #define CTRL_SPI        SPI2
 #define LEDS_SPI        SPI1
+#endif
+
+#if 1 // =========================== I2C =======================================
+#define I2C1_ENABLED        FALSE
+#define I2C2_ENABLED        TRUE
+#define I2C_BAUDRATE_HZ     400000
 #endif
 
 #if 1 // =========================== ADC =======================================
