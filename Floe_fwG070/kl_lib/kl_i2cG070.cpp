@@ -394,7 +394,7 @@ uint8_t i2c_t::IBusyWait() {
     uint8_t RetryCnt = 4;
     while(RetryCnt--) {
         if(!(PParams->pi2c->ISR & I2C_ISR_BUSY)) return retvOk;
-        Time.Wait(1);
+//        Time.Wait(1);
     }
     return retvTimeout;
 }

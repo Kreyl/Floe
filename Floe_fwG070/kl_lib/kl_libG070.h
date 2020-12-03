@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include "stm32g0xx.h"
 #include <stdlib.h>
+#include "stm32_isr.h"
 
 #if 1 // ============================= General =================================
 typedef void (*ftVoidVoid)(void);
@@ -145,6 +146,9 @@ static inline uint32_t GetSysClkHz() {
     return 64000000;
 }
 static inline uint32_t GetApbClkHz() {
+    return 64000000;
+}
+static inline uint32_t GetTimerClkHz() {
     return 64000000;
 }
 
@@ -648,16 +652,16 @@ public:
 #endif
 
 #if 1 // ========================= Time and Delay ==============================
-class Time_t : private Timer_t {
-public:
-    Time_t(TIM_TypeDef *APTimer) : Timer_t(APTimer) {}
-    void Init();
-    uint32_t GetCurrent() { return GetCounter(); }
-    void Wait(uint16_t Time_ms);
-    uint32_t ElapsedSince(uint32_t Start);
-};
+//class Time_t : private Timer_t {
+//public:
+//    Time_t(TIM_TypeDef *APTimer) : Timer_t(APTimer) {}
+//    void Init();
+//    uint32_t GetCurrent() { return GetCounter(); }
+//    void Wait(uint16_t Time_ms);
+//    uint32_t ElapsedSince(uint32_t Start);
+//};
 
-extern Time_t Time;
+//extern Time_t Time;
 // Place somewhere Time_t Time{TIME_TIMER};
 
 static inline void DelayLoop(volatile uint32_t ACounter) { while(ACounter--); }

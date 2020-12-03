@@ -67,22 +67,22 @@ private:
     uint32_t CurrV = BOTTOM_MIN_V;
 public:
     void Update() {
-        if(Time.ElapsedSince(tStart) < Delay) return;
-        tStart = Time.GetCurrent();
-        Delay = CurrClr.AdjustAndGetDelay(TargetClr, CurrEff->SmoothValue);
-        if(Delay == 0) {
-            // if on top brt, go down
-            if(CurrClr.V >= TOP_MIN_V) {
-//                TargetClr.V = Random::Generate(BOTTOM_MIN_V, BOTTOM_MAX_V);
-                TargetClr.V = BOTTOM_MIN_V;
-            }
-            // if on bottom brt, change color and go up
-            else {
-                TargetClr = CurrEff->GetNewClr();
-                TargetClr.V = Random::Generate(TOP_MIN_V, TOP_MAX_V);
-                CurrClr.H = TargetClr.H;
-            }
-        }
+//        if(Time.ElapsedSince(tStart) < Delay) return;
+//        tStart = Time.GetCurrent();
+//        Delay = CurrClr.AdjustAndGetDelay(TargetClr, CurrEff->SmoothValue);
+//        if(Delay == 0) {
+//            // if on top brt, go down
+//            if(CurrClr.V >= TOP_MIN_V) {
+////                TargetClr.V = Random::Generate(BOTTOM_MIN_V, BOTTOM_MAX_V);
+//                TargetClr.V = BOTTOM_MIN_V;
+//            }
+//            // if on bottom brt, change color and go up
+//            else {
+//                TargetClr = CurrEff->GetNewClr();
+//                TargetClr.V = Random::Generate(TOP_MIN_V, TOP_MAX_V);
+//                CurrClr.H = TargetClr.H;
+//            }
+//        }
     }
     Color_t ToRGB() { return CurrClr.ToRGB(); }
 };

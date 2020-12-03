@@ -28,19 +28,19 @@ static BaseUart_t *BaseUart3 = nullptr;
 static BaseUart_t *BaseUart4 = nullptr;
 
 extern "C" {
-void USART1_IRQHandler() {
+void STM32_USART1_HANDLER() {
     uint32_t flags = USART1->ISR;
     USART1->ICR = flags;
     if(flags and BaseUart1) BaseUart1->IRQUartHandler(flags);
 }
 
-void USART2_IRQHandler() {
+void STM32_USART2_HANDLER() {
     uint32_t flags = USART2->ISR;
     USART2->ICR = flags;
     if(flags and BaseUart2) BaseUart2->IRQUartHandler(flags);
 }
 
-void USART3_4_IRQHandler() {
+void STM32_USART3_4_LP1_HANDLER() {
     uint32_t flags = USART3->ISR;
     USART3->ICR = flags;
     if(flags and BaseUart3) BaseUart3->IRQUartHandler(flags);
@@ -143,7 +143,6 @@ void BaseUart_t::Init() {
 #endif
 
 #if 1 // Clock
-    // Setup independent clock if possible
     if(Params->Uart == USART1) {
         RCC->CCIPR &= ~RCC_CCIPR_USART1SEL;
         RCC->CCIPR |= ((uint32_t)Params->ClkSrc) << RCC_CCIPR_USART1SEL_Pos;
@@ -200,7 +199,7 @@ void BaseUart_t::OnClkChange() {
 #if 1 // ========================= Cmd UART ====================================
 void CmdUart_t::Init() {
     BaseUart_t::Init();
-/*    // Enable IRQ on \n reception
+    // Enable IRQ on \n reception
     uint32_t CharToIrq = UART_CHAR_TO_IRQ;
     uint32_t tmp = Params->Uart->CR2;
     tmp &= 0x00FFFFFFUL; // Clear
@@ -208,21 +207,27 @@ void CmdUart_t::Init() {
     Params->Uart->CR2 = tmp;
     Params->Uart->CR1 |= USART_CR1_CMIE; // Enable IRQ
     Params->Uart->ICR = USART_ICR_CMCF;  // Clear IRQ flag1
-    BaseUart1 = this;
 
     if(Params->Uart == USART1) {
+        BaseUart1 = this;
         NVIC_SetPriority(USART1_IRQn, IRQ_PRIO_MEDIUM);
         NVIC_EnableIRQ(USART1_IRQn);
     }
     else if(Params->Uart == USART2) {
+        BaseUart2 = this;
         NVIC_SetPriority(USART2_IRQn, IRQ_PRIO_MEDIUM);
         NVIC_EnableIRQ(USART2_IRQn);
     }
-    else {
+    else if(Params->Uart == USART3) {
+        BaseUart3 = this;
         NVIC_SetPriority(USART3_4_IRQn, IRQ_PRIO_MEDIUM);
         NVIC_EnableIRQ(USART3_4_IRQn);
     }
-*/
+    else {
+        BaseUart4 = this;
+        NVIC_SetPriority(USART3_4_IRQn, IRQ_PRIO_MEDIUM);
+        NVIC_EnableIRQ(USART3_4_IRQn);
+    }
     Enable();
 }
 
@@ -236,7 +241,8 @@ uint8_t CmdUart_t::GetRcvdCmd() {
 
 void CmdUart_t::IRQUartHandler(uint32_t flags) {
     if(flags & USART_ISR_CMF) { // Desired Char found
-//        NewCmdRcvd = true;
+        Printf("aga\r");
+//        EvtQMain.SendNowOrExitI(EvtMsg_t(evtIdUartCmdRcvd, (void*)this));
     }
 }
 #endif

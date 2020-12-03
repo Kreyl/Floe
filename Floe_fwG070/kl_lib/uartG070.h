@@ -85,7 +85,7 @@ public:
     void EnableTCIrq(const uint32_t Priority, ftVoidVoid ACallback);
     // Inner use
     void IRQDmaTxHandler();
-    void IRQUartHandler(uint32_t flags) { }
+    virtual void IRQUartHandler(uint32_t flags) = 0;
 };
 
 class CmdUart_t : public BaseUart_t, public PrintfHelper_t, public Shell_t {

@@ -6,6 +6,10 @@
 
 #define LSE_FREQ_HZ     32768   // Left it here even if not used
 
+// ST driver system settings
+#define STM32_ST_IRQ_PRIORITY               2
+#define STM32_ST_USE_TIMER                  15
+
 #ifndef TRUE
 #define TRUE            1
 #endif

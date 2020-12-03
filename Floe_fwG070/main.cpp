@@ -1,5 +1,7 @@
 #include "board.h"
 #include "kl_libG070.h"
+#include "ch.h"
+#include "hal.h"
 #include "uartG070.h"
 #include "LEDs.h"
 #include "shell.h"
@@ -14,12 +16,12 @@ CmdUart_t Uart{&CmdUartParams};
 void ClockInit();
 void ITask();
 
-Settings_t Settings;
-Adc_t Adc;
+//Settings_t Settings;
+//Adc_t Adc;
 Lis3d_t Lis {&i2c2};
 
 // Animation
-Time_t Time{TIME_TIMER};
+//Time_t Time{TIME_TIMER};
 const uint8_t *AniPtr;
 uint32_t TimePicStart;
 uint32_t ShowDuration = 0;
@@ -27,28 +29,33 @@ uint32_t ShowDuration = 0;
 
 uint32_t Start = 0;
 
-Color_t Pic[7] = { clBlack };
 #endif
 
 int main(void) {
-    __disable_irq();
     ClockInit();
     __enable_irq();
     // Start Watchdog. Will reset in main thread by periodic 1 sec events.
 //    Iwdg::InitAndStart(4500);
 //    Iwdg::DisableInDebug();
 
+    // === Init OS ===
+    halInit();
+    chSysInit();
+
     // ==== Init hardware ====
-    PinSetupOut(DBG_PIN, omPushPull);
+
+//    PinSetupOut(DBG_PIN, omPushPull);
     Uart.Init();
     Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    Time.Init();
-    Leds::Init();
-    i2c2.Init();
-    i2c2.ScanBus();
+    chThdSleepMilliseconds(999);
+    Printf("ogo\r");
+//    Time.Init();
+//    Leds::Init();
+//    i2c2.Init();
+//    i2c2.ScanBus();
 
-    Lis.Init();
+//    Lis.Init();
 //    Settings.Load();
 
     // ADC for temperature measurement. Will trigger periodically by TIM6. IRQ-driven.
@@ -67,8 +74,10 @@ int main(void) {
 __attribute__((__noreturn__))
 void ITask() {
     while(true) {
+        chThdSleepMilliseconds(999);
+        Printf("hoho\r");
 //        Iwdg::Reload();
-        Effects::Task();
+//        Effects::Task();
 
 //        if(Time.ElapsedSince(Start) > 306) {
 //            Start = Time.GetCurrent();

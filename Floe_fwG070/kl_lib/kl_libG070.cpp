@@ -296,14 +296,14 @@ void DMA_t::Init(volatile void* PeriphAddr, void* MemAddr, uint32_t AMode, uint1
 
 // ==== IRQs ====
 extern "C" {
-void DMA1_Channel1_IRQHandler() {
+void STM32_DMA1_CH1_HANDLER() {
     uint32_t flags = DMA1->ISR & 0xFUL; // Mask only needed bits
     DMA1->IFCR = DMA_IFCR_CGIF1;        // Clear all irq flags
     ftVoidPVoidW32 func = DmaIrqHandler[0].Handler;
     if(func) func(DmaIrqHandler[0].Param, flags >> 0);
 }
 
-void DMA1_Channel2_3_IRQHandler() {
+void STM32_DMA1_CH23_HANDLER() {
     uint32_t flags = DMA1->ISR & 0xFF0UL;
     if(flags & DMA_ISR_GIF2) { // Global IRQ flag for second chnl
         DMA1->IFCR = DMA_IFCR_CGIF2;
@@ -317,7 +317,7 @@ void DMA1_Channel2_3_IRQHandler() {
     }
 }
 
-void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler() {
+void STM32_DMA1_CH4567_HANDLER() {
     uint32_t flags = DMA1->ISR & 0xFFFF000UL;
     if(flags & DMA_ISR_GIF4) { // Global IRQ flag
         DMA1->IFCR = DMA_IFCR_CGIF4;
@@ -349,19 +349,19 @@ void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler() {
 extern "C" {
 ftVoidVoid ExtiIrqHandler_0_1, ExtiIrqHandler_2_3, ExtiIrqHandler_4_15;
 
-void EXTI0_1_IRQHandler() {
+void STM32_EXTI0_1_HANDLER() {
     EXTI->RPR1 = (1<<1) | (1<<0);
     EXTI->FPR1 = (1<<1) | (1<<0);
     if(ExtiIrqHandler_0_1 != nullptr) ExtiIrqHandler_0_1();
 }
 
-void EXTI2_3_IRQHandler() {
+void STM32_EXTI2_3_HANDLER() {
     EXTI->RPR1 = (1<<3) | (1<<2);
     EXTI->FPR1 = (1<<3) | (1<<2);
     if(ExtiIrqHandler_2_3 != nullptr) ExtiIrqHandler_2_3();
 }
 
-void EXTI4_15_IRQHandler() {
+void STM32_EXTI4_15_HANDLER() {
     EXTI->RPR1 = 0xFFF0;
     EXTI->FPR1 = 0xFFF0;
     if(ExtiIrqHandler_4_15 != nullptr) ExtiIrqHandler_4_15();
@@ -437,7 +437,7 @@ uint8_t ProgramDWord(uint32_t Address, uint64_t Data) {
 }; // Namespace
 #endif
 
-#if 1 // ========================= Time and Delay ==============================
+#if 0 // ========================= Time and Delay ==============================
 void Time_t::Init() {
     Timer_t::Init();
     SetTopValue(0xFFFF);
