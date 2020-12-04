@@ -157,8 +157,10 @@
 #if 1 // ========================== USART ======================================
 #define PRINTF_FLOAT_EN     FALSE
 #define UART_TXBUF_SZ       512
-#define UART_RXBUF_SZ       9
+#define UART_RXBUF_SZ       256
+#define CMD_BUF_SZ          128
 #define UART_CHAR_TO_IRQ    '\n'
+
 #define CMD_UART_PARAMS \
     USART1, UART_GPIO, UART_TX_PIN, UART_GPIO, UART_RX_PIN, \
     UART_DMA_TX_CHNL, UART_DMA_RX_CHNL, \

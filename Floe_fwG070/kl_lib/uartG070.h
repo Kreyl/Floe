@@ -84,8 +84,8 @@ public:
     void FlushTx() { while(!ITxDmaIsIdle); }  // wait DMA
     void EnableTCIrq(const uint32_t Priority, ftVoidVoid ACallback);
     // Inner use
-    void IRQDmaTxHandler();
-    virtual void IRQUartHandler(uint32_t flags) = 0;
+    void IRQDmaTxHandlerI();
+    virtual void IRQUartHandlerI(uint32_t flags) = 0;
 };
 
 class CmdUart_t : public BaseUart_t, public PrintfHelper_t, public Shell_t {
@@ -103,7 +103,7 @@ public:
     }
     uint8_t GetRcvdCmd();
     // Inner use
-    void IRQUartHandler(uint32_t flags);
+    void IRQUartHandlerI(uint32_t flags);
 };
 
 //class ByteUart_t : public BaseUart_t, public ByteShell_t {

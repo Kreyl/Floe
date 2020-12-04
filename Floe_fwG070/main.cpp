@@ -9,8 +9,11 @@
 #include "Effects.h"
 #include "kl_i2cG070.h"
 #include "lis3dh.h"
+#include "MsgQ.h"
 
 #if 1 // ======================== Variables & prototypes =======================
+EvtMsgQ_t<EvtMsg_t, MAIN_EVT_Q_LEN> EvtQMain;
+void OnCmd(Shell_t *PShell);
 static const UartParams_t CmdUartParams(115200, CMD_UART_PARAMS);
 CmdUart_t Uart{&CmdUartParams};
 void ClockInit();
@@ -33,7 +36,6 @@ uint32_t Start = 0;
 
 int main(void) {
     ClockInit();
-    __enable_irq();
     // Start Watchdog. Will reset in main thread by periodic 1 sec events.
 //    Iwdg::InitAndStart(4500);
 //    Iwdg::DisableInDebug();
@@ -41,16 +43,13 @@ int main(void) {
     // === Init OS ===
     halInit();
     chSysInit();
+    EvtQMain.Init();
 
     // ==== Init hardware ====
-
-//    PinSetupOut(DBG_PIN, omPushPull);
+    PinSetupOut(DBG_PIN, omPushPull);
     Uart.Init();
     Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    chThdSleepMilliseconds(999);
-    Printf("ogo\r");
-//    Time.Init();
 //    Leds::Init();
 //    i2c2.Init();
 //    i2c2.ScanBus();
@@ -74,61 +73,14 @@ int main(void) {
 __attribute__((__noreturn__))
 void ITask() {
     while(true) {
-        chThdSleepMilliseconds(999);
-        Printf("hoho\r");
-//        Iwdg::Reload();
-//        Effects::Task();
+        EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
+        switch(Msg.ID) {
+            case evtIdShellCmd:
+                while(((CmdUart_t*)Msg.Ptr)->GetRcvdCmd() == retvOk) OnCmd((Shell_t*)((CmdUart_t*)Msg.Ptr));
+                break;
 
-//        if(Time.ElapsedSince(Start) > 306) {
-//            Start = Time.GetCurrent();
-////            Printf("Aga\r");
-//
-//            Pic[N] = clBlack;
-//            N++;
-//            if(N>6) N=0;
-//            Pic[N] = clGreen;
-//            Leds::ShowPic(Pic);
-//        }
-
-
-//        switch(Settings.Mode) {
-//            case modeIdle:
-//                if(IgnoreShowDelay or Time.ElapsedSince(TimePicStart) >= ShowDuration) {
-//                    __disable_irq();
-//                    SpiCmd_t *PCmd = Framebuf.GetAndLock();
-//                    __enable_irq();
-//                    if(PCmd) {
-//                        // Get duration: how long to show it
-//                        uint32_t MetaDataSz = (SpiReply.ProtocolVersion == VERSION_PROTOCOL_WITH_CRC) ? (SHOW_DURATION_SZ + CRC_SZ) : SHOW_DURATION_SZ;
-//                        if(PCmd->DataSz > MetaDataSz) {
-//                            PCmd->DataSz -= MetaDataSz;
-//                            ShowDuration = Bytes2Word16(PCmd->Cmd.FrameData[PCmd->DataSz], PCmd->Cmd.FrameData[PCmd->DataSz+1]);
-//                        }
-//                        else ShowDuration = 0; // No such data
-//                        // Show
-//                        Leds::PutPicToBuf(PCmd->Cmd.FrameData, PCmd->DataSz); // DataSz may be bigger than picSz (due to Show Duration), it is ok.
-//                        Leds::ShowBuf();
-//                        // Setup delay
-//                        IgnoreShowDelay = false;
-//                        TimePicStart = Time.GetCurrent();
-//                        // Unlock it
-//                        __disable_irq();
-//                        Framebuf.UnlockAndFree();
-//                        __enable_irq();
-//                    }
-//                    else IgnoreShowDelay = true; // No pic to show now. Show next at once.
-//                }
-//                break;
-//
-//            case modeAnimation: DoAnimation();                break;
-//            case modeGradient:  TestPatterns.ShowGradient();  break;
-//            case modeClock:     TestPatterns.ShowClock();     break;
-//            case modeSwitchBrt: TestPatterns.ShowSwitchBrt(); break;
-//            case modeSteadyTest:
-//                Leds::ShowBuf();
-//                Settings.Mode = modeIdle;
-//                break;
-//        } // switch
+            default: Printf("Unhandled Msg %u\r", Msg.ID); break;
+        } // Switch
     } // while true
 }
 
@@ -158,6 +110,20 @@ void ITask() {
 //    }
 //    Leds::ShowBuf();
 //}
+
+#if 1 // ================= Command processing ====================
+void OnCmd(Shell_t *PShell) {
+    Cmd_t *PCmd = &PShell->Cmd;
+    __attribute__((unused)) int32_t dw32 = 0;  // May be unused in some configurations
+//    Printf("%S%S\r", PCmd->IString, PCmd->Remainer? PCmd->Remainer : " empty");
+    // Handle command
+    if(PCmd->NameIs("Ping")) {
+        PShell->Ok();
+    }
+    else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
+    else PShell->CmdUnknown();
+}
+#endif
 
 void ClockInit() {
     uint32_t tmpreg;

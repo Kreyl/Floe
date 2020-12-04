@@ -5,22 +5,27 @@
  *      Author: Kreyl
  */
 
-#include "shell.h"
 #include "uartG070.h"
+#include "shell.h"
+#include "color.h"
 
 extern CmdUart_t Uart;
 
 void Printf(const char *format, ...) {
     va_list args;
     va_start(args, format);
+    chSysLock();
     Uart.IVsPrintf(format, args);
+    chSysUnlock();
     va_end(args);
 }
 
 void Printf(CmdUart_t &AUart, const char *format, ...) {
     va_list args;
     va_start(args, format);
+    chSysLock();
     AUart.IVsPrintf(format, args);
+    chSysUnlock();
     va_end(args);
 }
 
@@ -48,11 +53,11 @@ void PrintfC(const char *format, ...) {
 class PrintToBuf_t : public PrintfHelper_t {
 public:
     char *S;
-    uint8_t IPutChar(char c) override {
+    uint8_t IPutChar(char c) {
         *S++ = c;
         return retvOk;
     }
-    void IStartTransmissionIfNotYet() override {}
+    void IStartTransmissionIfNotYet() {}
 };
 
 char* PrintfToBuf(char* PBuf, const char *format, ...) {
@@ -101,7 +106,7 @@ void PrintfHelper_t::PrintEOL() {
 
 void PrintfHelper_t::IVsPrintf(const char *format, va_list args) {
     const char *fmt = format;
-    uint32_t width = 0, precision;
+    int width = 0, precision;
     char c, filler;
     while(true) {
         c = *fmt++;
@@ -148,9 +153,9 @@ void PrintfHelper_t::IVsPrintf(const char *format, va_list args) {
             case 's':
             case 'S': {
                 char *s = va_arg(args, char*);
-                while(*s != 0) {
-                    if(IPutChar(*s++) != retvOk) goto End;
-                }
+                width -= strlen(s); // Do padding of string
+                while(s and *s)    { if(IPutChar(*s++)   != retvOk) goto End; }
+                while(width-- > 0) { if(IPutChar(filler) != retvOk) goto End; } // Do padding of string
             }
             break;
 

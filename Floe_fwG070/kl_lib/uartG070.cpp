@@ -5,16 +5,17 @@
  *      Author: kreyl
  */
 
-//#include "MsgQ.h"
-#include <string.h>
 #include "uartG070.h"
 #include "kl_libG070.h"
+#include "MsgQ.h"
+#include "ch.h"
+#include "hal.h"
 
 #if 1 // ========================= Base UART ===================================
 #if 1 // ==== TX ====
 
 // Wrapper for TX IRQ
-void UartDmaTxIrqHandler(void *p, uint32_t flags) { ((BaseUart_t*)p)->IRQDmaTxHandler(); }
+void UartDmaTxIrqHandler(void *p, uint32_t flags) { ((BaseUart_t*)p)->IRQDmaTxHandlerI(); }
 
 // ==== UART IRQs ====
 struct UartIrqHandler_t {
@@ -29,29 +30,41 @@ static BaseUart_t *BaseUart4 = nullptr;
 
 extern "C" {
 void STM32_USART1_HANDLER() {
+    OSAL_IRQ_PROLOGUE();
+    chSysLockFromISR();
     uint32_t flags = USART1->ISR;
     USART1->ICR = flags;
-    if(flags and BaseUart1) BaseUart1->IRQUartHandler(flags);
+    if(flags and BaseUart1) BaseUart1->IRQUartHandlerI(flags);
+    chSysUnlockFromISR();
+    OSAL_IRQ_EPILOGUE();
 }
 
 void STM32_USART2_HANDLER() {
+    OSAL_IRQ_PROLOGUE();
+    chSysLockFromISR();
     uint32_t flags = USART2->ISR;
     USART2->ICR = flags;
-    if(flags and BaseUart2) BaseUart2->IRQUartHandler(flags);
+    if(flags and BaseUart2) BaseUart2->IRQUartHandlerI(flags);
+    chSysUnlockFromISR();
+    OSAL_IRQ_EPILOGUE();
 }
 
 void STM32_USART3_4_LP1_HANDLER() {
+    OSAL_IRQ_PROLOGUE();
+    chSysLockFromISR();
     uint32_t flags = USART3->ISR;
     USART3->ICR = flags;
-    if(flags and BaseUart3) BaseUart3->IRQUartHandler(flags);
+    if(flags and BaseUart3) BaseUart3->IRQUartHandlerI(flags);
     flags = USART4->ISR;
     USART4->ICR = flags;
-    if(flags and BaseUart4) BaseUart4->IRQUartHandler(flags);
+    if(flags and BaseUart4) BaseUart4->IRQUartHandlerI(flags);
+    chSysUnlockFromISR();
+    OSAL_IRQ_EPILOGUE();
 }
 } // extern "C"
 
 // ==== TX DMA IRQ ====
-void BaseUart_t::IRQDmaTxHandler() {
+void BaseUart_t::IRQDmaTxHandlerI() {
     DmaTx.Disable(); // Registers may be changed only when stream is disabled
     IFullSlotsCount -= ITransSize;
     PRead += ITransSize;
@@ -239,10 +252,9 @@ uint8_t CmdUart_t::GetRcvdCmd() {
     return retvEmpty;
 }
 
-void CmdUart_t::IRQUartHandler(uint32_t flags) {
+void CmdUart_t::IRQUartHandlerI(uint32_t flags) {
     if(flags & USART_ISR_CMF) { // Desired Char found
-        Printf("aga\r");
-//        EvtQMain.SendNowOrExitI(EvtMsg_t(evtIdUartCmdRcvd, (void*)this));
+        EvtQMain.SendNowOrExitI(EvtMsg_t(evtIdShellCmd, (BaseUart_t*)this));
     }
 }
 #endif
