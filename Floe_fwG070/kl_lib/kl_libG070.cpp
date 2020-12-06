@@ -8,6 +8,7 @@
 #include "kl_libG070.h"
 #include "cmsis_gcc.h"
 #include "hal.h"
+#include "MsgQ.h"
 
 uint32_t AHBFreqHz, APBFreqHz;
 
@@ -117,6 +118,17 @@ void PinOutputPWM_t::Init() const {
 
     // GPIO
     PinSetupAlterFunc(ISetup.PGpio, ISetup.Pin, ISetup.OutputType, pudNone, ISetup.AF);
+}
+#endif
+
+#if 1 // ========================= Virtual Timers ==============================
+// Universal VirtualTimer callback
+void TmrKLCallback(void *p) {
+    chSysLockFromISR();
+    TmrKL_t* PTmr = (TmrKL_t*)p;
+    EvtQMain.SendNowOrExitI(EvtMsg_t(PTmr->EvtId));
+    if(PTmr->TmrType == tktPeriodic) PTmr->StartI();
+    chSysUnlockFromISR();
 }
 #endif
 

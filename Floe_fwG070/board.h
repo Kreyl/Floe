@@ -63,6 +63,8 @@
 // Acc
 #define ACG_IRQ_PIN     GPIOC, 13
 
+// Button
+#define BTN_PIN         GPIOA, 0
 #endif // GPIO
 
 #if 1 // =========================== SPI =======================================

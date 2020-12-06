@@ -12,6 +12,8 @@
 #include "stm32g0xx.h"
 #include <stdlib.h>
 #include "stm32_isr.h"
+#include "ch.h"
+#include "EvtMsgIDs.h"
 
 #if 1 // ============================= General =================================
 typedef void (*ftVoidVoid)(void);
@@ -74,6 +76,55 @@ enum RiseFall_t {risefallRising, risefallFalling, risefallNone, risefallBoth};
 
 #define REBOOT()    SCB->AIRCR = 0x05FA0004
 #endif
+
+#if 1 // ======================= Virtual Timer =================================
+/*
+ * Example:
+ * TmrKL_t TmrCheckBtn {MS2ST(54), evtIdBattery, tktPeriodic};
+ * TmrCheckBtn.InitAndStart(chThdGetSelfX());
+ */
+
+void TmrKLCallback(void *p);    // Universal VirtualTimer callback
+
+enum TmrKLType_t {tktOneShot, tktPeriodic};
+
+class TmrKL_t {
+private:
+    virtual_timer_t Tmr;
+    sysinterval_t Period;
+public:
+    EvtMsgId_t EvtId;
+    TmrKLType_t TmrType;
+    void StartI() { chVTSetI(&Tmr, Period, TmrKLCallback, this); }  // Will be reset before start
+    void StartOrRestart() {
+        chSysLock();
+        StartI();
+        chSysUnlock();
+    }
+    void StartOrRestart(sysinterval_t NewPeriod) {
+        chSysLock();
+        Period = NewPeriod;
+        StartI();
+        chSysUnlock();
+    }
+    void StartIfNotRunning() {
+        chSysLock();
+        if(!chVTIsArmedI(&Tmr)) StartI();
+        chSysUnlock();
+    }
+    void Stop() { chVTReset(&Tmr); }
+
+    void SetNewPeriod_ms(uint32_t NewPeriod) { Period = TIME_MS2I(NewPeriod); }
+    void SetNewPeriod_s(uint32_t NewPeriod) { Period = TIME_S2I(NewPeriod); }
+
+    TmrKL_t(sysinterval_t APeriod, EvtMsgId_t AEvtId, TmrKLType_t AType) :
+        Period(APeriod), EvtId(AEvtId), TmrType(AType) {}
+    // Dummy period is set
+    TmrKL_t(EvtMsgId_t AEvtId, TmrKLType_t AType) :
+            Period(TIME_S2I(9)), EvtId(AEvtId), TmrType(AType) {}
+};
+#endif
+
 
 #if 1 // ========================== Random =====================================
 namespace Random {
