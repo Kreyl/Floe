@@ -16,7 +16,7 @@
 
 static Color_t RGBs[LED_CNT];
 static thread_reference_t ThdRef = nullptr;
-static Effect_t EffEmpty{306, {120, 100, 100}, {240, 100, 100}};
+static Effect_t EffEmpty{306, {0, 100, 100}, {120, 100, 100}, {240, 100, 100}};
 static Effect_t &CurrEff = EffEmpty;
 
 static void ITmrCallback(void *p);
@@ -37,7 +37,7 @@ public:
         CurrClr.H = TargetClr.H;
         uint32_t Delay = CurrClr.AdjustAndGetDelay(TargetClr, CurrEff.SmoothValue);
         if(Delay == 0) Delay = 1;
-        chVTSet(&ITmr, TIME_MS2I(Delay), ITmrCallback, this);
+        chVTSet(&ITmr, TIME_MS2I(1), ITmrCallback, this);
     }
 
     void IOnTmrI() {
@@ -95,9 +95,6 @@ void Init() {
     for(auto &Pix : Pixels) Pix.Restart();
 }
 
-void Set(Effect_t &Eff) {
-    CurrEff = Eff;
-    for(auto &Pix : Pixels) Pix.Restart();
-}
+void Set(Effect_t &Eff) { CurrEff = Eff; }
 
 } // namespace

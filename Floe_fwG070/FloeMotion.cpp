@@ -63,7 +63,7 @@ static void AcgThread(void *arg) {
         chThdSuspendS(&ThdRef); // Wait IRQ
         chSysUnlock();
         if(ReadData() != retvOk) Printf("Err\r");
-        Printf("%d\t%d\t%d\r\n", ax[0],ax[1],ax[2]);
+//        Printf("%d\t%d\t%d\r\n", ax[0],ax[1],ax[2]);
     }
 }
 

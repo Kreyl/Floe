@@ -22,13 +22,12 @@ void ITask();
 //Settings_t Settings;
 //Adc_t Adc;
 
+Effect_t EffWave {306, {120, 100, 100}, {240, 100, 100}};
+Effect_t EffKnock{90, {120, 100, 100}, {240, 100, 100}};
 
-//void DoAnimation();
-
-//Effect_t EffIdle{306, {240, 100, 100}, {300, 100, 0}};
-Effect_t EffIdle{306, {120, 100, 100}, {240, 100, 100}};
-//Effect_t EffIdle{306, {240, 100, 100}};
-
+Effect_t EffIdle{306, {240, 100, 100}};
+Effect_t EffGood{450, {120, 100, 100}};
+Effect_t EffBad {180, {0, 100, 100}};
 #endif
 
 int main(void) {
@@ -50,10 +49,10 @@ int main(void) {
     Leds::Init();
     i2c2.Init();
 //    i2c2.ScanBus();
-//    FloeMotionInit();
+    FloeMotionInit();
 
     Effects::Init();
-//    Effects::Set(EffIdle);
+    Effects::Set(EffIdle);
 
 //    Settings.Load();
 
@@ -84,43 +83,21 @@ void ITask() {
     } // while true
 }
 
-//void DoAnimation() {
-//    if(Time.ElapsedSince(TimePicStart) < ANI_DURATION_ms) return;
-//    TimePicStart = Time.GetCurrent();
-//    // Get frame
-//    AniFrame_t *pFrame = (AniFrame_t*)AniPtr;
-//    uint32_t Sz = pFrame->xsz * pFrame->ysz;
-//    AniPtr += 4+Sz;
-//    if(((uint32_t)AniPtr - (uint32_t)AniFile) >= ANI_SZ) AniPtr = AniFile;
-//    // Prepare pic
-//    uint8_t Brt;
-//    for(int32_t y=0; y<ROW_CNT; y++) {
-//        for(int32_t x=0; x<COL_CNT; x++) {
-//            // Get pixel from frame
-//            int32_t xi = x - (int32_t)pFrame->x0;
-//            int32_t yi = y - (int32_t)pFrame->y0;
-//            if(xi < 0 or yi < 0 or xi >= (int32_t)pFrame->xsz or yi >= (int32_t)pFrame->ysz) {
-//                Brt = 0;
-//            }
-//            else {
-//                Brt = pFrame->Data[xi + yi * pFrame->xsz];
-//            }
-//            Leds::PutPixelToBuf(x, y, Brt);
-//        }
-//    }
-//    Leds::ShowBuf();
-//}
-
 #if 1 // ================= Command processing ====================
 void OnCmd(Shell_t *PShell) {
     Cmd_t *PCmd = &PShell->Cmd;
     __attribute__((unused)) int32_t dw32 = 0;  // May be unused in some configurations
 //    Printf("%S%S\r", PCmd->IString, PCmd->Remainer? PCmd->Remainer : " empty");
     // Handle command
-    if(PCmd->NameIs("Ping")) {
-        PShell->Ok();
-    }
+    if(PCmd->NameIs("Ping")) PShell->Ok();
     else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
+
+    else if(PCmd->NameIs("Idle"))  Effects::Set(EffIdle);
+    else if(PCmd->NameIs("Wave"))  Effects::Set(EffWave);
+    else if(PCmd->NameIs("Knock")) Effects::Set(EffKnock);
+    else if(PCmd->NameIs("Good"))  Effects::Set(EffGood);
+    else if(PCmd->NameIs("Bad"))   Effects::Set(EffBad);
+
     else PShell->CmdUnknown();
 }
 #endif
