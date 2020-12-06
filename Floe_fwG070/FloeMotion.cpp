@@ -63,7 +63,7 @@ static void AcgThread(void *arg) {
         chThdSuspendS(&ThdRef); // Wait IRQ
         chSysUnlock();
         if(ReadData() != retvOk) Printf("Err\r");
-//        Printf("%d\t%d\t%d\r\n", ax[0],ax[1],ax[2]);
+        Printf("%d\t%d\t%d\r\n", ax[0],ax[1],ax[2]);
     }
 }
 
@@ -72,10 +72,15 @@ void FloeMotionInit() {
 #if 1 // ==== Lis ====
     // Check if Lis connected
     uint8_t b = 0;
-    if(ReadReg(LIS_RA_WHO_AM_I, &b) != retvOk) {
-        Printf("Lis3D ReadReg fail\r");
-        return;
+    // Try it several times
+    for(int i=0; i<99; i++) {
+        if(ReadReg(LIS_RA_WHO_AM_I, &b) == retvOk) goto ReadRegOK;
+        chThdSleepMilliseconds(1);
     }
+    Printf("Lis3D ReadReg fail\r");
+    return;
+
+    ReadRegOK:
     if(b != 0x33) {
         Printf("Lis3D fail: %02X\r", b);
         return;

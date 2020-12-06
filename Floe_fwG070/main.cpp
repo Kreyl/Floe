@@ -52,6 +52,7 @@ int main(void) {
     Uart.Init();
     Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
+    chThdSleepMilliseconds(9); // Let it rise
     Leds::Init();
     i2c2.Init();
 //    i2c2.ScanBus();

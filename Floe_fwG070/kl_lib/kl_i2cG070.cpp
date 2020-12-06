@@ -93,7 +93,10 @@ void i2c_t::Init() {
 //    uint32_t SclLen = ((ClkHz / 2) / I2C_BAUDRATE_HZ) - 1;
 //    if(SclLen >= 4) SclLen -= 4;
 //    pi2c->TIMINGR = (Prescaler << 28) | 0x00100000 | (SclLen << 8) | SclLen;
-    pi2c->TIMINGR = 0x00C12166;
+    pi2c->TIMINGR = 0x1082102F; // 99 99
+//    pi2c->TIMINGR = 0x00C12166; // 99 99
+//    pi2c->TIMINGR = 0x0090216D; // 45 45
+//    pi2c->TIMINGR = 0x00602173;
 
     // Analog filter enabled, digital disabled, clk stretch enabled, DMA enabled
 #if I2C_USE_DMA
