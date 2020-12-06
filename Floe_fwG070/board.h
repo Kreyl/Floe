@@ -60,16 +60,12 @@
 #define LED_DATA        GPIOB, 5, omPushPull, pudNone, AF0
 #define LED_CLK         GPIOB, 3, omPushPull, pudNone, AF0
 
-// Control SPI
-#define CTRL_CS         GPIOB, 9
-#define CTRL_SCK        GPIOB, 8, omPushPull, pudPullDown, AF1
-#define CTRL_MISO       GPIOB, 6, omPushPull, pudNone, AF4
-#define CTRL_MOSI       GPIOB, 7, omPushPull, pudPullDown, AF1
+// Acc
+#define ACG_IRQ_PIN     GPIOC, 13
 
 #endif // GPIO
 
 #if 1 // =========================== SPI =======================================
-#define CTRL_SPI        SPI2
 #define LEDS_SPI        SPI1
 #endif
 
@@ -77,6 +73,7 @@
 #define I2C1_ENABLED        FALSE
 #define I2C2_ENABLED        TRUE
 #define I2C_BAUDRATE_HZ     400000
+#define I2C_USE_DMA         FALSE
 #endif
 
 #if 1 // =========================== ADC =======================================
@@ -124,23 +121,6 @@
 #define LEDS_DMA_TX_CHNL    1
 #define LEDS_DMA_TX_REQID   17 // SPI1 TX, p223 of refman
 
-// ==== Ctrl SPI ====
-#define CTRL_DMA_TX_CHNL    3
-#define CTRL_DMA_TX_REQID   19 // SPI2 TX, p223 of refman
-#define CTRL_DMA_RX_CHNL    2
-#define CTRL_DMA_RX_REQID   18 // SPI2 RX, p223 of refman
-
-#define CTRL_DMA_TX_MODE (  DMA_PRIORITY_LOW | \
-                            DMA_MSIZE_8_BIT | \
-                            DMA_PSIZE_8_BIT | \
-                            DMA_MEM_INC |     \
-                            DMA_DIR_MEM2PER )
-
-#define CTRL_DMA_RX_MODE (  DMA_PRIORITY_MEDIUM | \
-                            DMA_MSIZE_8_BIT | \
-                            DMA_PSIZE_8_BIT | \
-                            DMA_MEM_INC |     \
-                            DMA_DIR_PER2MEM )
 
 // ==== I2C1 ====
 #define I2C1_DMA_TX_CHNL    5

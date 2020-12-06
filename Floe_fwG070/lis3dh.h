@@ -13,7 +13,7 @@
 #define LIS_i2C             i2c1
 #define LIS_I2C_ADDR        0x19
 
-#define LIS_IRQ_EN          FALSE
+#define LIS_IRQ_EN          TRUE
 
 //#define LIS_DEBUG_PINS
 
@@ -97,6 +97,7 @@ public:
         if(WriteReg(LIS_RA_CTRL_REG4, (0x80 + LIS_SCALE_8G + LIS_HIRES_EN)) != retvOk) return retvFail;
         // CFG5: no reboot, FIFO dis, no IRQ latch
         if(WriteReg(LIS_RA_CTRL_REG5, 0b00000000) != retvOk) return retvFail;
+        Printf("Lis init ok\r");
         return retvOk;
     }
     uint8_t ReadData() {

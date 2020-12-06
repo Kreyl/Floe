@@ -1,6 +1,7 @@
 #pragma once
 
 #include "kl_libG070.h"
+#include "ch.h"
 
 struct i2cParams_t {
     I2C_TypeDef *pi2c;
@@ -30,6 +31,7 @@ private:
 #endif
     uint8_t IBusyWait();
     void IReset();
+    thread_reference_t PThd = nullptr;
     i2cState_t IState = istIdle;
     void IWakeup();
     uint8_t *IPtr = nullptr;

@@ -7,6 +7,7 @@
 
 #include "kl_libG070.h"
 #include "cmsis_gcc.h"
+#include "hal.h"
 
 uint32_t AHBFreqHz, APBFreqHz;
 
@@ -350,21 +351,27 @@ extern "C" {
 ftVoidVoid ExtiIrqHandler_0_1, ExtiIrqHandler_2_3, ExtiIrqHandler_4_15;
 
 void STM32_EXTI0_1_HANDLER() {
+    OSAL_IRQ_PROLOGUE();
     EXTI->RPR1 = (1<<1) | (1<<0);
     EXTI->FPR1 = (1<<1) | (1<<0);
     if(ExtiIrqHandler_0_1 != nullptr) ExtiIrqHandler_0_1();
+    OSAL_IRQ_EPILOGUE();
 }
 
 void STM32_EXTI2_3_HANDLER() {
+    OSAL_IRQ_PROLOGUE();
     EXTI->RPR1 = (1<<3) | (1<<2);
     EXTI->FPR1 = (1<<3) | (1<<2);
     if(ExtiIrqHandler_2_3 != nullptr) ExtiIrqHandler_2_3();
+    OSAL_IRQ_EPILOGUE();
 }
 
 void STM32_EXTI4_15_HANDLER() {
+    OSAL_IRQ_PROLOGUE();
     EXTI->RPR1 = 0xFFF0;
     EXTI->FPR1 = 0xFFF0;
     if(ExtiIrqHandler_4_15 != nullptr) ExtiIrqHandler_4_15();
+    OSAL_IRQ_EPILOGUE();
 }
 
 } // extern C

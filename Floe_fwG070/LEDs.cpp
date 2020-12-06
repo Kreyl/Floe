@@ -2,6 +2,7 @@
 #include "board.h"
 #include "stm32g0xx.h"
 #include "kl_libG070.h"
+#include "color.h"
 
 #if 1 // ============================= Variables ===============================
 static const Timer_t ITmr{LEDS_TIM}; // Latch generator

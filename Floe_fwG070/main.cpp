@@ -8,7 +8,7 @@
 #include "Settings.h"
 #include "Effects.h"
 #include "kl_i2cG070.h"
-#include "lis3dh.h"
+#include "FloeMotion.h"
 #include "MsgQ.h"
 
 #if 1 // ======================== Variables & prototypes =======================
@@ -21,16 +21,13 @@ void ITask();
 
 //Settings_t Settings;
 //Adc_t Adc;
-Lis3d_t Lis {&i2c2};
 
-// Animation
-//Time_t Time{TIME_TIMER};
-const uint8_t *AniPtr;
-uint32_t TimePicStart;
-uint32_t ShowDuration = 0;
+
 //void DoAnimation();
 
-uint32_t Start = 0;
+//Effect_t EffIdle{306, {240, 100, 100}, {300, 100, 0}};
+Effect_t EffIdle{306, {120, 100, 100}, {240, 100, 100}};
+//Effect_t EffIdle{306, {240, 100, 100}};
 
 #endif
 
@@ -50,11 +47,14 @@ int main(void) {
     Uart.Init();
     Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-//    Leds::Init();
-//    i2c2.Init();
+    Leds::Init();
+    i2c2.Init();
 //    i2c2.ScanBus();
+//    FloeMotionInit();
 
-//    Lis.Init();
+    Effects::Init();
+//    Effects::Set(EffIdle);
+
 //    Settings.Load();
 
     // ADC for temperature measurement. Will trigger periodically by TIM6. IRQ-driven.
