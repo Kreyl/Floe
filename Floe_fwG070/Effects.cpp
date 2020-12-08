@@ -16,7 +16,7 @@
 
 static Color_t RGBs[LED_CNT];
 static thread_reference_t ThdRef = nullptr;
-static Effect_t EffEmpty{306, {0, 100, 100}, {120, 100, 100}, {240, 100, 100}};
+static Effect_t EffEmpty{306, {0, 0, 100}};
 static Effect_t &CurrEff = EffEmpty;
 
 static void ITmrCallback(void *p);

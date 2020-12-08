@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <inttypes.h>
+
 #define acgi2c  i2c2
 
-void FloeMotionInit();
+uint8_t FloeMotionInit();

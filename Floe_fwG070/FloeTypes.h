@@ -17,9 +17,11 @@
 
 // ==== Always ====
 Effect_t EffIdle{306, {240, 100, 100}};
+Effect_t EffGood{630, {120, 100, 100}};
+Effect_t EffBad {180, {  0, 100, 100}};
 
 #if IS_GOOD
-Effect_t EffOnPress{630, {120, 100, 100}};
+#define EffOnPress      EffGood
 
 #if TYPE == 1
 Effect_t EffWave {306, {120, 100, 100}, {240, 100, 100}};
@@ -29,7 +31,7 @@ Effect_t EffKnock{90, {120, 100, 100}, {240, 100, 100}};
 #endif
 
 #else
-Effect_t EffOnPress {180, {0, 100, 100}};
+#define EffOnPress      EffBad
 
 #if TYPE == 1
 Effect_t EffWave {306, {120, 100, 100}, {240, 100, 100}};

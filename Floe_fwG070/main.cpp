@@ -56,10 +56,10 @@ int main(void) {
     Leds::Init();
     i2c2.Init();
 //    i2c2.ScanBus();
-    FloeMotionInit();
 
     Effects::Init();
-    Effects::Set(EffIdle);
+    if(FloeMotionInit() == retvOk) Effects::Set(EffIdle);
+    else Effects::Set(EffBad);
 
     ButtonPin.Init(risefallRising);
     ButtonPin.EnableIrq(IRQ_PRIO_MEDIUM);
