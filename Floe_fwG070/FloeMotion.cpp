@@ -10,6 +10,7 @@
 #include "ch.h"
 
 static thread_reference_t ThdRef = nullptr;
+#define LIS_FIFO_LVL        20
 
 class Acc_t {
 public:
@@ -52,7 +53,9 @@ public:
     Acc_t Percent(int32_t Percent) {
         return Acc_t(((int32_t)x[0] * Percent) / 100L, ((int32_t)x[1] * Percent) / 100L, ((int32_t)x[2] * Percent) / 100L);
     }
-};
+
+    int32_t LengthPow2() { return x[0]*x[0] + x[1]*x[1] + x[2]*x[2]; }
+} __attribute__((packed));
 
 Acc_t Module(Acc_t Acc) {
     if(Acc[0] < 0) Acc[0] = - Acc[0];
@@ -63,6 +66,8 @@ Acc_t Module(Acc_t Acc) {
 
 static Acc_t vNow, vPrev, vMid;
 static Acc_t vDifVal;
+
+static Acc_t vIn[LIS_FIFO_LVL];
 
 void AcgIrqHandler();
 static const PinIrq_t IIrq{ACG_IRQ_PIN, pudPullDown, AcgIrqHandler};
@@ -75,76 +80,128 @@ static const PinIrq_t IIrq{ACG_IRQ_PIN, pudPullDown, AcgIrqHandler};
 
 enum State_t { mstMoving, mstIdle, mstWaiting, mstKnockWaitingLow } State = mstMoving;
 
-int32_t DurationHigh = 0, DurationLow = 0;
-int32_t CalmCounter = 0;
+#define KNOCK_MID_V     (17L * 1000000L) // Const = 4096 ^2
+#define KNOCK_DEV_V     (18L * 1000000L) // Sensitivity
+#define KNOCK_CALM_DUR  45
+#define KNOCK_MAX_DUR   27
 
-static void Update() {
-    switch(State) {
-        case mstMoving:
-//            Printf("Mv\r");
-            if(Module(vNow - vPrev).AllLessThan(Delta)) {
-                CalmCounter++;
-                if(CalmCounter >= 10) {
-                    State = mstIdle;
-                    vMid = vNow;
-                    // Calculate values to compare with
-                    vDifVal = Module(vMid.Percent(DifPercent));
-                    Printf("vDifVal ");
-                    vDifVal.Print();
-                    CalmCounter = 0;
+class Knock_t {
+private:
+    enum KnockState_t { kstIdle, kstHigh, kstWaiting } KState = kstIdle;
+    int32_t HighDuration, LowDuration;
+public:
+    void Update(int32_t VLen) {
+        int32_t ModDif = (VLen > KNOCK_MID_V) ? (VLen - KNOCK_MID_V) : (KNOCK_MID_V - VLen);
+        switch(KState) {
+            case kstIdle:
+                if(ModDif > KNOCK_DEV_V) {
+                    KState = kstHigh;
+                    HighDuration = 1;
+                    LowDuration = 0;
+                    Printf("V1 %d\r", ModDif/1000000);
                 }
-            }
-            else CalmCounter = 0;
-            break;
-
-        case mstIdle:
-//            Printf("Idle\r");
-            if(Module(vNow - vMid).AnyBiggerThan(vDifVal)) {
-                State = mstWaiting;
-                DurationHigh = 0;
-                Printf("Mod ");
-                Module(vNow - vMid).Print();
-            }
-            break;
-
-        case mstWaiting:
-//            Printf("Wait\r");
-            DurationHigh++;
-            if(DurationHigh >= MaxKnockLength) {
-                // Check if calmed down
-                if(Module(vNow - vPrev).AllLessThan(Delta)) {
-                    CalmCounter++;
-                    if(CalmCounter >= 3) { // Knock occured
-                        Printf("Knock\r");
-                        State = mstMoving;
-                        CalmCounter = 0;
+                break;
+            case kstHigh:
+                if(ModDif < KNOCK_DEV_V) KState = kstWaiting;
+                else HighDuration++;
+//                Printf("V2 %d\r", ModDif/1000000);
+                break;
+            case kstWaiting:
+                if(ModDif > KNOCK_DEV_V) {
+                    LowDuration = 0;
+                    KState = kstHigh;
+//                    Printf("V3 %d\r", ModDif/1000000);
+                }
+                else {
+                    LowDuration++;
+                    if(LowDuration >= KNOCK_CALM_DUR) {
+                        KState = kstIdle;
+                        Printf("HiDur %d\r", HighDuration);
+                        if(HighDuration <= KNOCK_MAX_DUR) Printf("Knock\r");
                     }
                 }
-                else { // Not calm
-                    State = mstMoving;
-                    CalmCounter = 0;
-                }
-                Printf("ModW ");
-                Module(vNow - vPrev).Print();
-            }
-            break;
+        } // switch
+    }
+} Knock;
 
-        case mstKnockWaitingLow:
-//            Printf("dif3: %d\r", a3dif());
-//            if(a3dif() < KnockEndThreshold) {
-//                DurationLow++;
-//                if(DurationLow >= KnockDurationLow) { // Calmed down
+systime_t prev = 0;
+
+static void Update() {
+//    int32_t VLen = vNow.LengthPow2();
+//    Printf("%d\r", VLen);
+    Printf("*** %u ***\r", chVTGetSystemTimeX() - prev);
+    prev = chVTGetSystemTimeX();
+//    Knock.Update(VLen);
+
+    for(int i=0; i<LIS_FIFO_LVL; i++) vIn[i].Print();
+
+
+//    switch(State) {
+//        case mstMoving:
+////            Printf("Mv\r");
+//            if(Module(vNow - vPrev).AllLessThan(Delta)) {
+//                CalmCounter++;
+//                if(CalmCounter >= 10) {
 //                    State = mstIdle;
-//                    Printf("DurationHigh: %d\r", DurationHigh);
-////                    if(DurationHigh
-////                    Printf(
+//                    vMid = vNow;
+//                    // Calculate values to compare with
+//                    vDifVal = Module(vMid.Percent(DifPercent));
+//                    Printf("vDifVal ");
+//                    vDifVal.Print();
+//                    CalmCounter = 0;
 //                }
 //            }
-//            else State = mstKnockWaitingHigh;
-            break;
-    } // switch
-    // Save new values
-    vPrev = vNow;
+//            else CalmCounter = 0;
+//            break;
+//
+//        case mstIdle:
+////            Printf("Idle\r");
+//            if(Module(vNow - vMid).AnyBiggerThan(vDifVal)) {
+//                State = mstWaiting;
+//                DurationHigh = 0;
+//                Printf("Mod ");
+//                Module(vNow - vMid).Print();
+//            }
+//            break;
+//
+//        case mstWaiting:
+////            Printf("Wait\r");
+//            DurationHigh++;
+//            if(DurationHigh >= MaxKnockLength) {
+//                // Check if calmed down
+//                if(Module(vNow - vPrev).AllLessThan(Delta)) {
+//                    CalmCounter++;
+//                    if(CalmCounter >= 3) { // Knock occured
+//                        Printf("Knock\r");
+//                        State = mstMoving;
+//                        CalmCounter = 0;
+//                    }
+//                }
+//                else { // Not calm
+//                    State = mstMoving;
+//                    CalmCounter = 0;
+//                }
+//                Printf("ModW ");
+//                Module(vNow - vPrev).Print();
+//            }
+//            break;
+//
+//        case mstKnockWaitingLow:
+////            Printf("dif3: %d\r", a3dif());
+////            if(a3dif() < KnockEndThreshold) {
+////                DurationLow++;
+////                if(DurationLow >= KnockDurationLow) { // Calmed down
+////                    State = mstIdle;
+////                    Printf("DurationHigh: %d\r", DurationHigh);
+//////                    if(DurationHigh
+//////                    Printf(
+////                }
+////            }
+////            else State = mstKnockWaitingHigh;
+//            break;
+//    } // switch
+//    // Save new values
+//    vPrev = vNow;
 }
 
 #if 1 // ============================ LIS3D ====================================
@@ -183,7 +240,8 @@ static uint8_t WriteReg(uint8_t RegAddr, uint8_t Value) {
 
 static uint8_t ReadData() {
     uint8_t RegAddr = LIS_RA_OUT_X_L | 0x80;
-    return acgi2c.WriteRead(LIS_I2C_ADDR, &RegAddr, 1, (uint8_t*)vNow.x, 6);
+//    return acgi2c.WriteRead(LIS_I2C_ADDR, &RegAddr, 1, (uint8_t*)vNow.x, 6);
+    return acgi2c.WriteRead(LIS_I2C_ADDR, &RegAddr, 1, (uint8_t*)vIn[0].x, 6 * LIS_FIFO_LVL);
 }
 #endif
 
@@ -224,14 +282,29 @@ uint8_t FloeMotionInit() {
     }
     // CFG1: Output data rate = 100Hz, normal mode, XYZ enable
     if(WriteReg(LIS_RA_CTRL_REG1, 0b01010111) != retvOk) return retvFail;
+    // CFG1: Output data rate = 200Hz, normal mode, XYZ enable
+//    if(WriteReg(LIS_RA_CTRL_REG1, 0b01100111) != retvOk) return retvFail;
+    // CFG1: Output data rate = 400Hz, normal mode, XYZ enable
+//    if(WriteReg(LIS_RA_CTRL_REG1, 0b01110111) != retvOk) return retvFail;
+    // CFG1: Output data rate = 1250Hz, normal mode, XYZ enable
+//    if(WriteReg(LIS_RA_CTRL_REG1, 0b10010111) != retvOk) return retvFail;
+
     // CFG2: HPF normal mode, filter bypassed
     if(WriteReg(LIS_RA_CTRL_REG2, 0b10000000) != retvOk) return retvFail;
     // CFG3 (irqs): DRDY irq on INT1
-    if(WriteReg(LIS_RA_CTRL_REG3, 0b00010000) != retvOk) return retvFail;
+//    if(WriteReg(LIS_RA_CTRL_REG3, 0b00010000) != retvOk) return retvFail;
     // CFG4: Block data update (output registers not updated until MSB and LSB read), LSB, FullScale=8g, HighRes, no selftest
     if(WriteReg(LIS_RA_CTRL_REG4, (0x80 | LIS_SCALE_8G | LIS_HIRES_EN)) != retvOk) return retvFail;
     // CFG5: no reboot, FIFO dis, no IRQ latch
-    if(WriteReg(LIS_RA_CTRL_REG5, 0) != retvOk) return retvFail;
+//    if(WriteReg(LIS_RA_CTRL_REG5, 0) != retvOk) return retvFail;
+    // ==== FIFO ====
+    // CFG5: no reboot, FIFO EN, no IRQ latch
+    if(WriteReg(LIS_RA_CTRL_REG5, 0b01000000) != retvOk) return retvFail;
+    // FIFO CTRL REG: Stream mode (overwrite oldest), watermark = LIS_FIFO_LVL
+    if(WriteReg(LIS_RA_FIFO_CTRL, ((0b10 << 6) | LIS_FIFO_LVL)) != retvOk) return retvFail;
+    // CFG3 (irqs): WTM (watermark) irq on INT1
+    if(WriteReg(LIS_RA_CTRL_REG3, 1 << 2) != retvOk) return retvFail;
+
     // CFG6: Click and irqs dis
     if(WriteReg(LIS_RA_CTRL_REG6, 0) != retvOk) return retvFail;
     // Get status and read data if available

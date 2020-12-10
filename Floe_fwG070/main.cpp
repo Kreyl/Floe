@@ -15,7 +15,7 @@
 #if 1 // ======================== Variables & prototypes =======================
 EvtMsgQ_t<EvtMsg_t, MAIN_EVT_Q_LEN> EvtQMain;
 void OnCmd(Shell_t *PShell);
-static const UartParams_t CmdUartParams(115200, CMD_UART_PARAMS);
+static const UartParams_t CmdUartParams(256000, CMD_UART_PARAMS);
 CmdUart_t Uart{&CmdUartParams};
 void ClockInit();
 void ITask();
