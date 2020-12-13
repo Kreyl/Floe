@@ -25,7 +25,7 @@ public:
     }
     void Set(uint32_t ASmoothValue, ColorHSV_t Clr0, ColorHSV_t Clr1, uint32_t AShowDuration) {
         SmoothValue = ASmoothValue;
-        ClrCnt = 1;
+        ClrCnt = 2;
         ClrArr[0] = Clr0;
         ClrArr[1] = Clr1;
         ShowDuration_s = AShowDuration;

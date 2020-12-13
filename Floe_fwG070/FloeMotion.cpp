@@ -136,12 +136,12 @@ static void Update() {
 
 //    Knock.Update();
 
-    for(int i=0; i<LIS_FIFO_LVL; i++) {
-        vIn[i].Print();
+//    for(int i=0; i<LIS_FIFO_LVL; i++) {
+//        vIn[i].Print();
 //        int32_t VLen = vIn[i].LengthPow2();
 //        int32_t ModDif = (VLen > KNOCK_MID_V) ? (VLen - KNOCK_MID_V) : (KNOCK_MID_V - VLen);
 //        Printf("%d\r", ModDif / 1000000);
-    }
+//    }
 
 
 //    switch(State) {

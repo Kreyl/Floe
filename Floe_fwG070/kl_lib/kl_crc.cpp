@@ -47,7 +47,7 @@ uint16_t CalculateCRC16HW(uint8_t *Buf, uint32_t Len) {
     CRC->INIT = CRC_INITVALUE;
     // Calculate
     while(Len--) *(volatile uint8_t*)&CRC->DR = *Buf++;
-    return CRC->DR;
+    return (uint16_t)CRC->DR;
 }
 
 #if defined STM32L4XX

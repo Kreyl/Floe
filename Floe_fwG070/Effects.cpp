@@ -17,7 +17,7 @@
 static Color_t RGBs[LED_CNT];
 static thread_reference_t ThdRef = nullptr;
 static Effect_t EffEmpty{306, {0, 0, 100}};
-static Effect_t &CurrEff = EffEmpty;
+static Effect_t *PCurrEff = &EffEmpty;
 
 static void ITmrCallback(void *p);
 
@@ -32,16 +32,16 @@ public:
 
     void Restart() {
         chVTReset(&ITmr);
-        TargetClr = CurrEff.GetNewClr();
+        TargetClr = PCurrEff->GetNewClr();
         TargetClr.V = Random::Generate(TOP_MIN_V, TOP_MAX_V);
         CurrClr.H = TargetClr.H;
-        uint32_t Delay = CurrClr.AdjustAndGetDelay(TargetClr, CurrEff.SmoothValue);
+        uint32_t Delay = CurrClr.AdjustAndGetDelay(TargetClr, PCurrEff->SmoothValue);
         if(Delay == 0) Delay = 1;
         chVTSet(&ITmr, TIME_MS2I(1), ITmrCallback, this);
     }
 
     void IOnTmrI() {
-        uint32_t Delay = CurrClr.AdjustAndGetDelay(TargetClr, CurrEff.SmoothValue);
+        uint32_t Delay = CurrClr.AdjustAndGetDelay(TargetClr, PCurrEff->SmoothValue);
         if(Delay == 0) {
             Delay = 1;
             // if on top brt, go down
@@ -51,7 +51,7 @@ public:
             }
             // if on bottom brt, change color and go up
             else {
-                TargetClr = CurrEff.GetNewClr();
+                TargetClr = PCurrEff->GetNewClr();
                 TargetClr.V = Random::Generate(TOP_MIN_V, TOP_MAX_V);
                 CurrClr.H = TargetClr.H;
             }
@@ -95,6 +95,6 @@ void Init() {
     for(auto &Pix : Pixels) Pix.Restart();
 }
 
-void Set(Effect_t &Eff) { CurrEff = Eff; }
+void Set(Effect_t &Eff) { PCurrEff = &Eff; }
 
 } // namespace

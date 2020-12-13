@@ -52,12 +52,12 @@ int main(void) {
     Uart.Init();
     Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
+    Settings.Load();
+
     chThdSleepMilliseconds(9); // Let it rise
     Leds::Init();
     i2c2.Init();
 //    i2c2.ScanBus();
-
-    Settings.Load();
 
     Effects::Init();
     if(FloeMotionInit() == retvOk) Effects::Set(Settings.EffIdle);
@@ -138,6 +138,17 @@ void OnCmd(Shell_t *PShell) {
     else if(PCmd->NameIs("Wave"))  Effects::Set(Settings.EffWave);
     else if(PCmd->NameIs("Knock")) Effects::Set(Settings.EffKnock);
     else if(PCmd->NameIs("Press")) Effects::Set(Settings.EffPress);
+
+    else if(PCmd->NameIs("Set")) {
+        uint32_t Smooth, ShowDuration;
+        ColorHSV_t Clr1, Clr2;
+        if(PCmd->Get("%u32 %u16%u8%u8 %u16%u8%u8 %u32", &Smooth, &Clr1.H, &Clr1.S, &Clr1.V, &Clr2.H, &Clr2.S, &Clr2.V, &ShowDuration) == 8) {
+            Settings.EffIdle.Set(Smooth, Clr1, Clr2, ShowDuration);
+            Settings.Save();
+        }
+        else { PShell->CmdError(); return; }
+
+    }
 
     else PShell->CmdUnknown();
 }
