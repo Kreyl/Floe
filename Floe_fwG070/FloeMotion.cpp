@@ -10,7 +10,7 @@
 #include "ch.h"
 
 static thread_reference_t ThdRef = nullptr;
-#define LIS_FIFO_LVL        20
+#define LIS_FIFO_LVL        27
 
 class Acc_t {
 public:
@@ -64,9 +64,6 @@ Acc_t Module(Acc_t Acc) {
     return Acc;
 }
 
-static Acc_t vNow, vPrev, vMid;
-static Acc_t vDifVal;
-
 static Acc_t vIn[LIS_FIFO_LVL];
 
 void AcgIrqHandler();
@@ -80,47 +77,52 @@ static const PinIrq_t IIrq{ACG_IRQ_PIN, pudPullDown, AcgIrqHandler};
 
 enum State_t { mstMoving, mstIdle, mstWaiting, mstKnockWaitingLow } State = mstMoving;
 
-#define KNOCK_MID_V     (17L * 1000000L) // Const = 4096 ^2
-#define KNOCK_DEV_V     (18L * 1000000L) // Sensitivity
-#define KNOCK_CALM_DUR  45
-#define KNOCK_MAX_DUR   27
+#define KNOCK_DEV_Hi    (14L * 1000000L) // Sensitivity
+#define KNOCK_DEV_LO    (7L * 1000000L) // Sensitivity
+#define KNOCK_CALM_DUR  180
+#define KNOCK_MAX_DUR   180
+
+#define KNOCK_MID_V     (17L * 1000000L) // Const = 4096 ^2, do not touch
 
 class Knock_t {
 private:
     enum KnockState_t { kstIdle, kstHigh, kstWaiting } KState = kstIdle;
     int32_t HighDuration, LowDuration;
 public:
-    void Update(int32_t VLen) {
-        int32_t ModDif = (VLen > KNOCK_MID_V) ? (VLen - KNOCK_MID_V) : (KNOCK_MID_V - VLen);
-        switch(KState) {
-            case kstIdle:
-                if(ModDif > KNOCK_DEV_V) {
-                    KState = kstHigh;
-                    HighDuration = 1;
-                    LowDuration = 0;
-                    Printf("V1 %d\r", ModDif/1000000);
-                }
-                break;
-            case kstHigh:
-                if(ModDif < KNOCK_DEV_V) KState = kstWaiting;
-                else HighDuration++;
-//                Printf("V2 %d\r", ModDif/1000000);
-                break;
-            case kstWaiting:
-                if(ModDif > KNOCK_DEV_V) {
-                    LowDuration = 0;
-                    KState = kstHigh;
-//                    Printf("V3 %d\r", ModDif/1000000);
-                }
-                else {
-                    LowDuration++;
-                    if(LowDuration >= KNOCK_CALM_DUR) {
-                        KState = kstIdle;
-                        Printf("HiDur %d\r", HighDuration);
-                        if(HighDuration <= KNOCK_MAX_DUR) Printf("Knock\r");
+    void Update() {
+        for(uint32_t i=0; i<LIS_FIFO_LVL; i++) {
+            int32_t VLen = vIn[i].LengthPow2();
+            int32_t ModDif = (VLen > KNOCK_MID_V) ? (VLen - KNOCK_MID_V) : (KNOCK_MID_V - VLen);
+            switch(KState) {
+                case kstIdle:
+                    if(ModDif > KNOCK_DEV_Hi) {
+                        KState = kstHigh;
+                        HighDuration = 1;
+                        LowDuration = 0;
+//                        Printf("V1 %d\r", ModDif/1000000);
                     }
-                }
-        } // switch
+                    break;
+                case kstHigh:
+                    if(ModDif < KNOCK_DEV_LO) KState = kstWaiting;
+                    else HighDuration++;
+    //                Printf("V2 %d\r", ModDif/1000000);
+                    break;
+                case kstWaiting:
+                    if(ModDif > KNOCK_DEV_LO) {
+                        LowDuration = 0;
+                        KState = kstHigh;
+    //                    Printf("V3 %d\r", ModDif/1000000);
+                    }
+                    else {
+                        LowDuration++;
+                        if(LowDuration >= KNOCK_CALM_DUR) {
+                            KState = kstIdle;
+                            Printf("HiDur %d\r", HighDuration);
+                            if(HighDuration <= KNOCK_MAX_DUR) Printf("Knock\r");
+                        }
+                    }
+            } // switch
+        } // for
     }
 } Knock;
 
@@ -129,11 +131,17 @@ systime_t prev = 0;
 static void Update() {
 //    int32_t VLen = vNow.LengthPow2();
 //    Printf("%d\r", VLen);
-    Printf("*** %u ***\r", chVTGetSystemTimeX() - prev);
-    prev = chVTGetSystemTimeX();
-//    Knock.Update(VLen);
+//    Printf("*** %u ***\r", chVTGetSystemTimeX() - prev);
+//    prev = chVTGetSystemTimeX();
 
-    for(int i=0; i<LIS_FIFO_LVL; i++) vIn[i].Print();
+//    Knock.Update();
+
+    for(int i=0; i<LIS_FIFO_LVL; i++) {
+        vIn[i].Print();
+//        int32_t VLen = vIn[i].LengthPow2();
+//        int32_t ModDif = (VLen > KNOCK_MID_V) ? (VLen - KNOCK_MID_V) : (KNOCK_MID_V - VLen);
+//        Printf("%d\r", ModDif / 1000000);
+    }
 
 
 //    switch(State) {
@@ -281,13 +289,15 @@ uint8_t FloeMotionInit() {
         return retvFail;
     }
     // CFG1: Output data rate = 100Hz, normal mode, XYZ enable
-    if(WriteReg(LIS_RA_CTRL_REG1, 0b01010111) != retvOk) return retvFail;
+//    if(WriteReg(LIS_RA_CTRL_REG1, 0b01010111) != retvOk) return retvFail;
     // CFG1: Output data rate = 200Hz, normal mode, XYZ enable
 //    if(WriteReg(LIS_RA_CTRL_REG1, 0b01100111) != retvOk) return retvFail;
     // CFG1: Output data rate = 400Hz, normal mode, XYZ enable
 //    if(WriteReg(LIS_RA_CTRL_REG1, 0b01110111) != retvOk) return retvFail;
     // CFG1: Output data rate = 1250Hz, normal mode, XYZ enable
-//    if(WriteReg(LIS_RA_CTRL_REG1, 0b10010111) != retvOk) return retvFail;
+    if(WriteReg(LIS_RA_CTRL_REG1, 0b10010111) != retvOk) return retvFail;
+    // CFG1: Output data rate = 5000Hz, LowPower mode, XYZ enable
+//    if(WriteReg(LIS_RA_CTRL_REG1, 0b10011111) != retvOk) return retvFail;
 
     // CFG2: HPF normal mode, filter bypassed
     if(WriteReg(LIS_RA_CTRL_REG2, 0b10000000) != retvOk) return retvFail;

@@ -8,21 +8,28 @@
 #pragma once
 
 #include "SaveToFlash.h"
+#include "Effects.h"
+#include "kl_crc.h"
 
-#define DELAY_MULTIPLIER    4096
+union Settings_t {
+    uint64_t __Align;
+    struct {
+        uint32_t crc16 = 0;
+        Effect_t EffIdle;
+        Effect_t EffKnock;
+        Effect_t EffWave;
+        Effect_t EffPress;
+    };
 
-enum Mode_t : uint8_t { modeIdle, modeGradient, modeClock, modeSwitchBrt, modeSteadyTest, modeAnimation };
-
-struct Settings_t {
-    uint64_t __ReservedForBootSettings; // Do not use this, Bootloader keeps here it's settings
-    Mode_t Mode;
-    uint32_t CntMax;
     void Load() {
         Flash::Read(FLASH_SETTINGS_ADDR, this, sizeof(Settings_t));
         // Check it
-        if(Mode == 0xFF) {
-            Mode = modeSwitchBrt;
-            CntMax = 720000;
+        Crc::InitHw();
+        if(crc16 != Crc::CalculateCRC16HW((uint8_t*)this, sizeof(Settings_t))) {
+            EffIdle .Set(306, hsvWhite, 2); // Duration is not used here
+            EffKnock.Set(306, hsvGreen, 4);
+            EffWave .Set(306, hsvBlue, 4);
+            EffPress.Set(630, hsvRed, 4);
         }
     }
     uint8_t Save() {

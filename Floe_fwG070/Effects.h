@@ -9,13 +9,29 @@
 
 #include "color.h"
 
-#define MAX_CLR_CNT     7
+#define MAX_CLR_CNT     4
 class Effect_t {
-private:
-    uint32_t ClrCnt;
-    ColorHSV_t ClrArr[MAX_CLR_CNT];
 public:
-    uint32_t SmoothValue;
+    uint32_t ClrCnt = 0;
+    ColorHSV_t ClrArr[MAX_CLR_CNT];
+    uint32_t SmoothValue = 0;
+    uint32_t ShowDuration_s = 2;
+
+    void Set(uint32_t ASmoothValue, ColorHSV_t Clr0, uint32_t AShowDuration) {
+        SmoothValue = ASmoothValue;
+        ClrCnt = 1;
+        ClrArr[0] = Clr0;
+        ShowDuration_s = AShowDuration;
+    }
+    void Set(uint32_t ASmoothValue, ColorHSV_t Clr0, ColorHSV_t Clr1, uint32_t AShowDuration) {
+        SmoothValue = ASmoothValue;
+        ClrCnt = 1;
+        ClrArr[0] = Clr0;
+        ClrArr[1] = Clr1;
+        ShowDuration_s = AShowDuration;
+    }
+
+    Effect_t() {}
     Effect_t(uint32_t SmoothValue, ColorHSV_t Clr0) : SmoothValue(SmoothValue) {
         ClrCnt = 1;
         ClrArr[0] = Clr0;
@@ -43,7 +59,7 @@ public:
         uint32_t ClrIndx = Random::Generate(0, ClrCnt-1);
         return ClrArr[ClrIndx];
     }
-};
+} __attribute__((packed));
 
 namespace Effects {
     void Init();

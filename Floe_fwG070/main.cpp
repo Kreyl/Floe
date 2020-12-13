@@ -20,7 +20,7 @@ CmdUart_t Uart{&CmdUartParams};
 void ClockInit();
 void ITask();
 
-//Settings_t Settings;
+Settings_t Settings;
 //Adc_t Adc;
 
 enum State_t { stateIdle, stateWave, stateKnock, statePressed };
@@ -57,14 +57,14 @@ int main(void) {
     i2c2.Init();
 //    i2c2.ScanBus();
 
+    Settings.Load();
+
     Effects::Init();
-    if(FloeMotionInit() == retvOk) Effects::Set(EffIdle);
+    if(FloeMotionInit() == retvOk) Effects::Set(Settings.EffIdle);
     else Effects::Set(EffBad);
 
     ButtonPin.Init(risefallRising);
     ButtonPin.EnableIrq(IRQ_PRIO_MEDIUM);
-
-//    Settings.Load();
 
     // ADC for temperature measurement. Will trigger periodically by TIM6. IRQ-driven.
 //    Adc.Init();
@@ -85,13 +85,12 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdPress:
-                Printf("Btn\r");
                 SetState(statePressed);
                 break;
 
-            case evtIdStateEnd:
-                SetState(stateIdle);
-                break;
+            case evtIdKnock:    SetState(stateKnock); break;
+            case evtIdWave:     SetState(stateWave);  break;
+            case evtIdStateEnd: SetState(stateIdle);  break;
 
             case evtIdShellCmd:
                 while(((CmdUart_t*)Msg.Ptr)->GetRcvdCmd() == retvOk) OnCmd((Shell_t*)((CmdUart_t*)Msg.Ptr));
@@ -105,19 +104,23 @@ void ITask() {
 void SetState(State_t NewState) {
     switch(NewState) {
         case stateIdle:
-            Effects::Set(EffIdle);
+            Printf("Set Idle\r");
+            Effects::Set(Settings.EffIdle);
             break;
         case stateWave:
-            Effects::Set(EffWave);
-            TmrStateEnd.StartOrRestart(TIME_MS2I(DURATION_OF_WAVE));
+            Printf("Set Wave\r");
+            Effects::Set(Settings.EffWave);
+            TmrStateEnd.StartOrRestart(TIME_S2I(Settings.EffWave.ShowDuration_s));
             break;
         case stateKnock:
-            Effects::Set(EffKnock);
-            TmrStateEnd.StartOrRestart(TIME_MS2I(DURATION_OF_KNOCK));
+            Printf("Set Knock\r");
+            Effects::Set(Settings.EffKnock);
+            TmrStateEnd.StartOrRestart(TIME_S2I(Settings.EffKnock.ShowDuration_s));
             break;
         case statePressed:
-            Effects::Set(EffOnPress);
-            TmrStateEnd.StartOrRestart(TIME_MS2I(DURATION_OF_PRESS));
+            Printf("Set Pressed\r");
+            Effects::Set(Settings.EffPress);
+            TmrStateEnd.StartOrRestart(TIME_S2I(Settings.EffPress.ShowDuration_s));
             break;
     } // switch
 }
@@ -131,10 +134,10 @@ void OnCmd(Shell_t *PShell) {
     if(PCmd->NameIs("Ping")) PShell->Ok();
     else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("Idle"))  Effects::Set(EffIdle);
-    else if(PCmd->NameIs("Wave"))  Effects::Set(EffWave);
-    else if(PCmd->NameIs("Knock")) Effects::Set(EffKnock);
-    else if(PCmd->NameIs("Press")) Effects::Set(EffOnPress);
+    else if(PCmd->NameIs("Idle"))  Effects::Set(Settings.EffIdle);
+    else if(PCmd->NameIs("Wave"))  Effects::Set(Settings.EffWave);
+    else if(PCmd->NameIs("Knock")) Effects::Set(Settings.EffKnock);
+    else if(PCmd->NameIs("Press")) Effects::Set(Settings.EffPress);
 
     else PShell->CmdUnknown();
 }

@@ -16,7 +16,6 @@
 #define DURATION_OF_PRESS   18000
 
 // ==== Always ====
-Effect_t EffIdle{306, {240, 100, 100}};
 Effect_t EffGood{630, {120, 100, 100}};
 Effect_t EffBad {180, {  0, 100, 100}};
 
