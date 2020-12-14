@@ -50,9 +50,8 @@ int main(void) {
     // ==== Init hardware ====
     PinSetupOut(DBG_PIN, omPushPull);
     Uart.Init();
-    Printf("\r%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
-
     Settings.Load();
+    Printf("\r%S %S; ID=%u, Type: %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME), Settings.TypeID, FloeTypes[Settings.TypeID].Description);
 
     chThdSleepMilliseconds(9); // Let it rise
     Leds::Init();
@@ -60,7 +59,7 @@ int main(void) {
 //    i2c2.ScanBus();
 
     Effects::Init();
-    if(FloeMotionInit() == retvOk) Effects::Set(Settings.EffIdle);
+    if(FloeMotionInit() == retvOk) Effects::Set(EffPwrOn);
     else Effects::Set(EffBad);
 
     ButtonPin.Init(risefallRising);
@@ -105,22 +104,22 @@ void SetState(State_t NewState) {
     switch(NewState) {
         case stateIdle:
             Printf("Set Idle\r");
-            Effects::Set(Settings.EffIdle);
+            Effects::Set(EffIdle);
             break;
         case stateWave:
             Printf("Set Wave\r");
-            Effects::Set(Settings.EffWave);
-            TmrStateEnd.StartOrRestart(TIME_S2I(Settings.EffWave.ShowDuration_s));
+            Effects::Set(FloeTypes[Settings.TypeID].Wave);
+            TmrStateEnd.StartOrRestart(TIME_S2I(DURATION_OF_WAVE_S));
             break;
         case stateKnock:
             Printf("Set Knock\r");
-            Effects::Set(Settings.EffKnock);
-            TmrStateEnd.StartOrRestart(TIME_S2I(Settings.EffKnock.ShowDuration_s));
+            Effects::Set(FloeTypes[Settings.TypeID].Knock);
+            TmrStateEnd.StartOrRestart(TIME_S2I(DURATION_OF_KNOCK_S));
             break;
         case statePressed:
             Printf("Set Pressed\r");
-            Effects::Set(Settings.EffPress);
-            TmrStateEnd.StartOrRestart(TIME_S2I(Settings.EffPress.ShowDuration_s));
+            Effects::Set(FloeTypes[Settings.TypeID].Press);
+            TmrStateEnd.StartOrRestart(TIME_S2I(DURATION_OF_PRESS_S));
             break;
     } // switch
 }
@@ -134,20 +133,21 @@ void OnCmd(Shell_t *PShell) {
     if(PCmd->NameIs("Ping")) PShell->Ok();
     else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
-    else if(PCmd->NameIs("Idle"))  Effects::Set(Settings.EffIdle);
-    else if(PCmd->NameIs("Wave"))  Effects::Set(Settings.EffWave);
-    else if(PCmd->NameIs("Knock")) Effects::Set(Settings.EffKnock);
-    else if(PCmd->NameIs("Press")) Effects::Set(Settings.EffPress);
+    else if(PCmd->NameIs("Idle"))  Effects::Set(EffIdle);
+    else if(PCmd->NameIs("Wave"))  Effects::Set(FloeTypes[Settings.TypeID].Wave);
+    else if(PCmd->NameIs("Knock")) Effects::Set(FloeTypes[Settings.TypeID].Knock);
+    else if(PCmd->NameIs("Press")) Effects::Set(FloeTypes[Settings.TypeID].Press);
 
     else if(PCmd->NameIs("Set")) {
-        uint32_t Smooth, ShowDuration;
-        ColorHSV_t Clr1, Clr2;
-        if(PCmd->Get("%u32 %u16%u8%u8 %u16%u8%u8 %u32", &Smooth, &Clr1.H, &Clr1.S, &Clr1.V, &Clr2.H, &Clr2.S, &Clr2.V, &ShowDuration) == 8) {
-            Settings.EffIdle.Set(Smooth, Clr1, Clr2, ShowDuration);
-            Settings.Save();
+        uint32_t NewType;
+        if(PCmd->GetNext<uint32_t>(&NewType) == retvOk) {
+            if(NewType < TYPE_CNT) {
+                Settings.TypeID = NewType;
+                Settings.Save();
+            }
+            else PShell->BadParam();
         }
-        else { PShell->CmdError(); return; }
-
+        else PShell->CmdError();
     }
 
     else PShell->CmdUnknown();

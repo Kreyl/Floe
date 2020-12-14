@@ -7,43 +7,37 @@
 
 #pragma once
 
-//#define IS_GOOD     TRUE
-#define TYPE            1
+#define TYPE_CNT            12
 
 // Timings
-#define DURATION_OF_WAVE    4500
-#define DURATION_OF_KNOCK   4500
-#define DURATION_OF_PRESS   18000
+#define DURATION_OF_WAVE_S    4
+#define DURATION_OF_KNOCK_S   4
+#define DURATION_OF_PRESS_S   18
 
 // ==== Always ====
-Effect_t EffGood{630, {120, 100, 100}};
-Effect_t EffBad {180, {  0, 100, 100}};
+Effect_t EffPwrOn{306, hsvWhite};
+Effect_t EffIdle {306, hsvBlue};
+Effect_t EffGood {630, hsvGreen};
+Effect_t EffBad  {180, hsvRed};
 
-#if IS_GOOD
-#define EffOnPress      EffGood
+struct FloeEffs_t {
+    Effect_t Wave, Knock, Press;
+    const char *Description;
+    FloeEffs_t(Effect_t AWave, Effect_t AKnock, Effect_t APress, const char* ADescription) :
+        Wave(AWave), Knock(AKnock), Press(APress), Description(ADescription) { }
+};
 
-#if TYPE == 1
-Effect_t EffWave {306, {120, 100, 100}, {240, 100, 100}};
-Effect_t EffKnock{90, {120, 100, 100}, {240, 100, 100}};
-#elif TYPE == 2
-
-#endif
-
-#else
-#define EffOnPress      EffBad
-
-#if TYPE == 1
-Effect_t EffWave {306, {120, 100, 100}, {240, 100, 100}};
-Effect_t EffKnock{90, {120, 100, 100}, {240, 100, 100}};
-#elif TYPE == 2
-
-#endif
-
-#endif
-
-
-
-
-
-
-
+FloeEffs_t FloeTypes[] = {
+        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood, "Random Good"}, // 0
+        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood, "Random Bad" }, // 1
+        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood, "Good 1" }, // 2
+        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood, "Bad 1" }, // 3
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 4
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 5
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 6
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 7
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 8
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 9
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 10
+//        { {306, {120, 100, 100}, {240, 100, 100}},  {90, {120, 100, 100}, {240, 100, 100}}, EffGood }, // 11
+};

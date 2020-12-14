@@ -8,15 +8,11 @@
 #pragma once
 
 #include "SaveToFlash.h"
-#include "Effects.h"
 #include "kl_crc.h"
 
 struct Settings_t {
     uint32_t crc16 = 0;
-    Effect_t EffIdle;
-    Effect_t EffKnock;
-    Effect_t EffWave;
-    Effect_t EffPress;
+    uint32_t TypeID = 0;
 
     void Load() {
         Flash::Read(FLASH_SETTINGS_ADDR, this, sizeof(Settings_t));
@@ -30,10 +26,7 @@ struct Settings_t {
             Printf("Settings loaded\r");
         }
         else {
-            EffIdle .Set(306, hsvWhite, 2); // Duration is not used here
-            EffKnock.Set(306, hsvGreen, 4);
-            EffWave .Set(306, hsvBlue, 4);
-            EffPress.Set(630, hsvRed, 4);
+            TypeID = 0;
             Printf("Settings not set\r");
         }
     }
