@@ -21,7 +21,7 @@
       "otherItems": false,
       "pads": false,
       "text": false,
-      "tracks": false,
+      "tracks": true,
       "vias": true,
       "zones": false
     },
@@ -53,7 +53,7 @@
       30,
       37
     ],
-    "visible_layers": "000f110_80000001"
+    "visible_layers": "000f130_80000001"
   },
   "meta": {
     "filename": "Floe.kicad_prl",

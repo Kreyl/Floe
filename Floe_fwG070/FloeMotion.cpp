@@ -8,10 +8,14 @@
 #include "FloeMotion.h"
 #include "kl_i2cG070.h"
 #include "ch.h"
+#include "math.h"
 
 static thread_reference_t ThdRef = nullptr;
 #define LIS_FIFO_LVL        27
+void AcgIrqHandler();
+static const PinIrq_t IIrq{ACG_IRQ_PIN, pudPullDown, AcgIrqHandler};
 
+#if 1 // =========================== Vector ====================================
 class Acc_t {
 public:
     int16_t x[3] = { 0 };
@@ -57,6 +61,18 @@ public:
     int32_t LengthPow2() { return x[0]*x[0] + x[1]*x[1] + x[2]*x[2]; }
 } __attribute__((packed));
 
+int32_t DiffLen(Acc_t &v1, Acc_t &v2) {
+    int32_t dif, sum;
+    dif = v1[0] - v2[0];
+    sum = dif * dif;
+    dif = v1[1] - v2[1];
+    sum += dif * dif;
+    dif = v1[2] - v2[2];
+    sum += dif * dif;
+    return (int32_t)sqrtf(sum);
+}
+#endif
+
 Acc_t Module(Acc_t Acc) {
     if(Acc[0] < 0) Acc[0] = - Acc[0];
     if(Acc[1] < 0) Acc[1] = - Acc[1];
@@ -66,150 +82,103 @@ Acc_t Module(Acc_t Acc) {
 
 static Acc_t vIn[LIS_FIFO_LVL];
 
-void AcgIrqHandler();
-static const PinIrq_t IIrq{ACG_IRQ_PIN, pudPullDown, AcgIrqHandler};
+static enum MState_t { mstMoving, mstWaitForIdle, mstIdle, mstWaitForKnockEnd } State = mstMoving;
+static uint32_t KnockDuration = 0, IdleDuration = 0, a1Cnt = 0, a2Cnt = 0;
+Acc_t vPrev{0, 0, 4096};
 
-//#define a3mid               -4095
-// ==== Knock params ====
-#define DifPercent          50L
-#define Delta               100L
-#define MaxKnockLength      5L
 
-enum State_t { mstMoving, mstIdle, mstWaiting, mstKnockWaitingLow } State = mstMoving;
+#define DELTA_IDLE      1000
+#define IDLE_DUR_MIN    10
+// Knock
+#define KNOCK_LEVEL     2000
+#define KNOCK_DUR_MIN   100
+#define DELTA_KNOCK     1000
+// Wave
+#define WAVE_DUR_MIN    500
+#define WAVE_DUR_MAX    5000
 
-#define KNOCK_DEV_Hi    (14L * 1000000L) // Sensitivity
-#define KNOCK_DEV_LO    (7L * 1000000L) // Sensitivity
-#define KNOCK_CALM_DUR  180
-#define KNOCK_MAX_DUR   180
 
-#define KNOCK_MID_V     (17L * 1000000L) // Const = 4096 ^2, do not touch
+static inline void Update(Acc_t &vNew) {
+//    vNew.Print();
 
-class Knock_t {
-private:
-    enum KnockState_t { kstIdle, kstHigh, kstWaiting } KState = kstIdle;
-    int32_t HighDuration, LowDuration;
-public:
-    void Update() {
-        for(uint32_t i=0; i<LIS_FIFO_LVL; i++) {
-            int32_t VLen = vIn[i].LengthPow2();
-            int32_t ModDif = (VLen > KNOCK_MID_V) ? (VLen - KNOCK_MID_V) : (KNOCK_MID_V - VLen);
-            switch(KState) {
-                case kstIdle:
-                    if(ModDif > KNOCK_DEV_Hi) {
-                        KState = kstHigh;
-                        HighDuration = 1;
-                        LowDuration = 0;
-//                        Printf("V1 %d\r", ModDif/1000000);
-                    }
-                    break;
-                case kstHigh:
-                    if(ModDif < KNOCK_DEV_LO) KState = kstWaiting;
-                    else HighDuration++;
-    //                Printf("V2 %d\r", ModDif/1000000);
-                    break;
-                case kstWaiting:
-                    if(ModDif > KNOCK_DEV_LO) {
-                        LowDuration = 0;
-                        KState = kstHigh;
-    //                    Printf("V3 %d\r", ModDif/1000000);
-                    }
-                    else {
-                        LowDuration++;
-                        if(LowDuration >= KNOCK_CALM_DUR) {
-                            KState = kstIdle;
-                            Printf("HiDur %d\r", HighDuration);
-                            if(HighDuration <= KNOCK_MAX_DUR) Printf("Knock\r");
-                        }
-                    }
-            } // switch
-        } // for
+    int32_t mul1 = vNew[0] * vPrev[0];
+    int32_t mul2 = vNew[1] * vPrev[1];
+
+//    Printf("%d %d\r", mul1, mul2);
+
+    if(mul1 <= 0) {
+//        Printf("aga 1\r");
+//        Printf("%d\r", a1Cnt);
+        if(WAVE_DUR_MIN < a1Cnt and a1Cnt < WAVE_DUR_MAX) {
+            Printf("Waving 1  %d\r", a1Cnt);
+        }
+        a1Cnt = 0;
     }
-} Knock;
+    else a1Cnt++;
 
-systime_t prev = 0;
-
-static void Update() {
-//    int32_t VLen = vNow.LengthPow2();
-//    Printf("%d\r", VLen);
-//    Printf("*** %u ***\r", chVTGetSystemTimeX() - prev);
-//    prev = chVTGetSystemTimeX();
-
-//    Knock.Update();
-
-//    for(int i=0; i<LIS_FIFO_LVL; i++) {
-//        vIn[i].Print();
-//        int32_t VLen = vIn[i].LengthPow2();
-//        int32_t ModDif = (VLen > KNOCK_MID_V) ? (VLen - KNOCK_MID_V) : (KNOCK_MID_V - VLen);
-//        Printf("%d\r", ModDif / 1000000);
-//    }
+    if(mul2 <= 0) {
+//        Printf("aga 2 \r");
+        if(WAVE_DUR_MIN < a2Cnt and a2Cnt < WAVE_DUR_MAX) {
+            Printf("Waving 2  %d\r", a2Cnt);
+        }
+        a2Cnt = 0;
+    }
+    else a2Cnt++;
 
 
-//    switch(State) {
-//        case mstMoving:
-////            Printf("Mv\r");
-//            if(Module(vNow - vPrev).AllLessThan(Delta)) {
-//                CalmCounter++;
-//                if(CalmCounter >= 10) {
-//                    State = mstIdle;
-//                    vMid = vNow;
-//                    // Calculate values to compare with
-//                    vDifVal = Module(vMid.Percent(DifPercent));
-//                    Printf("vDifVal ");
-//                    vDifVal.Print();
-//                    CalmCounter = 0;
-//                }
-//            }
-//            else CalmCounter = 0;
-//            break;
-//
-//        case mstIdle:
-////            Printf("Idle\r");
-//            if(Module(vNow - vMid).AnyBiggerThan(vDifVal)) {
-//                State = mstWaiting;
-//                DurationHigh = 0;
-//                Printf("Mod ");
-//                Module(vNow - vMid).Print();
-//            }
-//            break;
-//
-//        case mstWaiting:
-////            Printf("Wait\r");
-//            DurationHigh++;
-//            if(DurationHigh >= MaxKnockLength) {
-//                // Check if calmed down
-//                if(Module(vNow - vPrev).AllLessThan(Delta)) {
-//                    CalmCounter++;
-//                    if(CalmCounter >= 3) { // Knock occured
-//                        Printf("Knock\r");
-//                        State = mstMoving;
-//                        CalmCounter = 0;
-//                    }
-//                }
-//                else { // Not calm
-//                    State = mstMoving;
-//                    CalmCounter = 0;
-//                }
-//                Printf("ModW ");
-//                Module(vNow - vPrev).Print();
-//            }
-//            break;
-//
-//        case mstKnockWaitingLow:
-////            Printf("dif3: %d\r", a3dif());
-////            if(a3dif() < KnockEndThreshold) {
-////                DurationLow++;
-////                if(DurationLow >= KnockDurationLow) { // Calmed down
-////                    State = mstIdle;
-////                    Printf("DurationHigh: %d\r", DurationHigh);
-//////                    if(DurationHigh
-//////                    Printf(
-////                }
-////            }
-////            else State = mstKnockWaitingHigh;
-//            break;
-//    } // switch
-//    // Save new values
-//    vPrev = vNow;
+    uint32_t DifLen = DiffLen(vNew, vPrev);
+//    Printf("%u\r", DifLen);
+    switch(State) {
+        case mstMoving:
+            if(DifLen < DELTA_IDLE) {
+                State = mstWaitForIdle;
+                IdleDuration = 0;
+//                Printf("W4Idle 1\r");
+            }
+            break;
+
+        case mstWaitForIdle:
+            if(DifLen < DELTA_IDLE) {
+                IdleDuration++;
+                if(IdleDuration >= IDLE_DUR_MIN) {
+                    State = mstIdle;
+                    Printf("Idle\r");
+                }
+            }
+            else {
+                IdleDuration = 0;
+                State = mstMoving;
+//                Printf("Moving 1\r");
+            }
+            break;
+
+        case mstIdle:
+            if(DifLen > KNOCK_LEVEL) {
+                State = mstWaitForKnockEnd;
+                KnockDuration = 0;
+//                Printf("W4KE 1\r");
+            }
+            else if(DifLen > DELTA_IDLE) {
+                State = mstMoving;
+//                Printf("Moving 2\r");
+            }
+            break;
+
+        case mstWaitForKnockEnd:
+            KnockDuration++;
+            if(KnockDuration > KNOCK_DUR_MIN) {
+                if(DifLen < DELTA_KNOCK) {
+                    Printf("Knock\r");
+                    KnockDuration = 0;
+                    State = mstIdle;
+                }
+                else {
+                    State = mstMoving;
+                }
+            }
+            break;
+    } // switch
+    vPrev = vNew;
 }
 
 #if 1 // ============================ LIS3D ====================================
@@ -261,7 +230,9 @@ static void AcgThread(void *arg) {
         chSysLock();
         chThdSuspendS(&ThdRef); // Wait IRQ
         chSysUnlock();
-        if(ReadData() == retvOk) Update();
+        if(ReadData() == retvOk) {
+            for(int i=0; i<LIS_FIFO_LVL; i++) Update(vIn[i]);
+        }
         else Printf("Err\r");
     }
 }
