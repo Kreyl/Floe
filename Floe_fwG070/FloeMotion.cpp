@@ -83,7 +83,7 @@ Acc_t Module(Acc_t Acc) {
 static Acc_t vIn[LIS_FIFO_LVL];
 
 static enum MState_t { mstMoving, mstWaitForIdle, mstIdle, mstWaitForKnockEnd } State = mstMoving;
-static uint32_t KnockDuration = 0, IdleDuration = 0, a1Cnt = 0, a2Cnt = 0;
+static uint32_t KnockDuration = 0, IdleDuration = 0;
 Acc_t vPrev{0, 0, 4096};
 
 
@@ -97,36 +97,36 @@ Acc_t vPrev{0, 0, 4096};
 #define WAVE_DUR_MIN    500
 #define WAVE_DUR_MAX    5000
 
+class CheckWave_t {
+private:
+    int32_t Duration = 0, Deviation = 0;
+public:
+    bool Check(int32_t aNow, int32_t aPrev) {
+        bool Rslt = false;
+        if(aNow * aPrev <= 0) { // Check if zero cross occured
+            // Check if duration and deviation are good
+            Rslt = Duration > 180 and Duration < 2007 and Deviation > 540;
+//            if(Rslt) Printf("%d %d\r", Duration, Deviation);
+            // Reset them
+            Duration = 0;
+            Deviation = 0;
+        }
+        else {
+            Duration++;
+            if(aNow < 0) aNow = -aNow;
+            if(aNow > Deviation) Deviation = aNow;
+        }
+        return Rslt;
+    }
+};
+
+static CheckWave_t ChWave0, ChWave1;
 
 static inline void Update(Acc_t &vNew) {
 //    vNew.Print();
-
-    int32_t mul1 = vNew[0] * vPrev[0];
-    int32_t mul2 = vNew[1] * vPrev[1];
-
-//    Printf("%d %d\r", mul1, mul2);
-
-    if(mul1 <= 0) {
-//        Printf("aga 1\r");
-//        Printf("%d\r", a1Cnt);
-        if(WAVE_DUR_MIN < a1Cnt and a1Cnt < WAVE_DUR_MAX) {
-            Printf("Waving 1  %d\r", a1Cnt);
-        }
-        a1Cnt = 0;
-    }
-    else a1Cnt++;
-
-    if(mul2 <= 0) {
-//        Printf("aga 2 \r");
-        if(WAVE_DUR_MIN < a2Cnt and a2Cnt < WAVE_DUR_MAX) {
-            Printf("Waving 2  %d\r", a2Cnt);
-        }
-        a2Cnt = 0;
-    }
-    else a2Cnt++;
-
-
+    // ==== Knocking ====
     uint32_t DifLen = DiffLen(vNew, vPrev);
+    bool KnockDetected = false;
 //    Printf("%u\r", DifLen);
     switch(State) {
         case mstMoving:
@@ -142,7 +142,7 @@ static inline void Update(Acc_t &vNew) {
                 IdleDuration++;
                 if(IdleDuration >= IDLE_DUR_MIN) {
                     State = mstIdle;
-                    Printf("Idle\r");
+//                    Printf("Idle\r");
                 }
             }
             else {
@@ -169,6 +169,7 @@ static inline void Update(Acc_t &vNew) {
             if(KnockDuration > KNOCK_DUR_MIN) {
                 if(DifLen < DELTA_KNOCK) {
                     Printf("Knock\r");
+                    KnockDetected = true;
                     KnockDuration = 0;
                     State = mstIdle;
                 }
@@ -178,6 +179,17 @@ static inline void Update(Acc_t &vNew) {
             }
             break;
     } // switch
+
+    // ==== Waving ====
+    if(!KnockDetected) {
+        if(ChWave0.Check(vNew[0], vPrev[0])) {
+            Printf("Wave 0\r");
+        }
+        if(ChWave1.Check(vNew[1], vPrev[1])) {
+            Printf("Wave 1\r");
+        }
+    }
+
     vPrev = vNew;
 }
 
@@ -231,7 +243,9 @@ static void AcgThread(void *arg) {
         chThdSuspendS(&ThdRef); // Wait IRQ
         chSysUnlock();
         if(ReadData() == retvOk) {
+//            systime_t Start = chVTGetSystemTimeX();
             for(int i=0; i<LIS_FIFO_LVL; i++) Update(vIn[i]);
+//            Printf("   %u\r", chVTTimeElapsedSinceX(Start));
         }
         else Printf("Err\r");
     }
