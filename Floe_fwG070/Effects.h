@@ -49,4 +49,5 @@ public:
 namespace Effects {
     void Init();
     void Set(Effect_t &Eff);
+    void Blink(ColorHSV_t Clr);
 };

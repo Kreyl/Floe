@@ -87,8 +87,20 @@ void ITask() {
                 SetState(statePressed);
                 break;
 
-            case evtIdKnock:    SetState(stateKnock); break;
-            case evtIdWave:     SetState(stateWave);  break;
+            case evtIdKnock:
+                Printf("Knock\r");
+//                Effects::Blink(hsvRed);
+//                SetState(stateKnock);
+                break;
+            case evtIdWave0:
+                Printf("Wave 0\r");
+//                SetState(stateWave);
+                break;
+            case evtIdWave1:
+                Printf("Wave 1\r");
+//                SetState(stateWave);
+                break;
+
             case evtIdStateEnd: SetState(stateIdle);  break;
 
             case evtIdShellCmd:

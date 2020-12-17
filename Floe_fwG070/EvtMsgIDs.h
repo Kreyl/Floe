@@ -17,7 +17,8 @@ enum EvtMsgId_t {
 
     // Not eternal
     evtIdStateEnd,
-    evtIdWave,
+    evtIdWave0,
+    evtIdWave1,
     evtIdKnock,
     evtIdPress,
 
