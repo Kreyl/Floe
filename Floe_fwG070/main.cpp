@@ -5,7 +5,6 @@
 #include "uartG070.h"
 #include "LEDs.h"
 #include "shell.h"
-#include "Settings.h"
 #include "Effects.h"
 #include "kl_i2cG070.h"
 #include "FloeMotion.h"
@@ -20,17 +19,28 @@ CmdUart_t Uart{&CmdUartParams};
 void ClockInit();
 void ITask();
 
-Settings_t Settings;
 //Adc_t Adc;
 
+uint32_t TypeID = 1;
+
+// State
 enum State_t { stateIdle, stateWave, stateKnock, statePressed };
 void SetState(State_t NewState);
 TmrKL_t TmrStateEnd { evtIdStateEnd, tktOneShot };
+systime_t KnockStartTime = 0;
+uint32_t KnockCounter = 0;
+systime_t WaveStartTime = 0;
+uint32_t WaveCounter = 0;
+#define MOTION_EVT_DEAD_TIME_MS     720
+#define KNOCK_CNT                   3
+#define WAVE_CNT                    4
+#define MOTION_EVT_PERIOD_MAX_MS    2007
 
 // Button
-void BtnIrqHandler() {
+TmrKL_t TmrBtn { TIME_MS2I(360), evtIdPress, tktOneShot };
+void BtnIrqHandler(RiseFall_t RiseFall) {
     chSysLockFromISR();
-    EvtQMain.SendNowOrExitI(EvtMsg_t(evtIdPress));
+    TmrBtn.StartOrRestartI();
     chSysUnlockFromISR();
 }
 static const PinIrq_t ButtonPin{BTN_PIN, pudPullDown, BtnIrqHandler};
@@ -50,8 +60,7 @@ int main(void) {
     // ==== Init hardware ====
     PinSetupOut(DBG_PIN, omPushPull);
     Uart.Init();
-    Settings.Load();
-    Printf("\r%S %S; ID=%u, Type: %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME), Settings.TypeID, FloeTypes[Settings.TypeID].Description);
+    Printf("\r%S %S; ID=%u, Type: %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME), TypeID, FloeTypes[TypeID].Description);
 
     chThdSleepMilliseconds(9); // Let it rise
     Leds::Init();
@@ -61,6 +70,7 @@ int main(void) {
     Effects::Init();
     if(FloeMotionInit() == retvOk) Effects::Set(EffPwrOn);
     else Effects::Set(EffBad);
+    TmrStateEnd.StartOrRestart(TIME_S2I(4));
 
     ButtonPin.Init(risefallRising);
     ButtonPin.EnableIrq(IRQ_PRIO_MEDIUM);
@@ -84,21 +94,36 @@ void ITask() {
         EvtMsg_t Msg = EvtQMain.Fetch(TIME_INFINITE);
         switch(Msg.ID) {
             case evtIdPress:
-                SetState(statePressed);
+                // Check if Btn still pressed
+                if(ButtonPin.IsHi()) SetState(statePressed);
                 break;
 
             case evtIdKnock:
-                Printf("Knock\r");
-//                Effects::Blink(hsvRed);
-//                SetState(stateKnock);
+                if(!ButtonPin.IsHi() and chVTTimeElapsedSinceX(WaveStartTime) > MOTION_EVT_DEAD_TIME_MS) {
+                    Effects::Blink(hsvWhite);
+                    // Count them
+                    if(chVTTimeElapsedSinceX(KnockStartTime) > MOTION_EVT_PERIOD_MAX_MS) {
+                        KnockCounter = 1;
+                    }
+                    else KnockCounter++;
+                    Printf("Knock %u\r", KnockCounter);
+                    KnockStartTime = chVTGetSystemTimeX();
+                    if(KnockCounter >= KNOCK_CNT) SetState(stateKnock);
+                }
                 break;
             case evtIdWave0:
-                Printf("Wave 0\r");
-//                SetState(stateWave);
-                break;
             case evtIdWave1:
-                Printf("Wave 1\r");
-//                SetState(stateWave);
+                if(!ButtonPin.IsHi() and chVTTimeElapsedSinceX(WaveStartTime) > MOTION_EVT_DEAD_TIME_MS) {
+                    Effects::Blink(hsvBlack);
+                    // Count them
+                    if(chVTTimeElapsedSinceX(WaveStartTime) > MOTION_EVT_PERIOD_MAX_MS) {
+                        WaveCounter = 1;
+                    }
+                    else WaveCounter++;
+                    Printf("Wave %u\r", WaveCounter);
+                    WaveStartTime = chVTGetSystemTimeX();
+                    if(WaveCounter >= WAVE_CNT) SetState(stateWave);
+                }
                 break;
 
             case evtIdStateEnd: SetState(stateIdle);  break;
@@ -120,17 +145,17 @@ void SetState(State_t NewState) {
             break;
         case stateWave:
             Printf("Set Wave\r");
-            Effects::Set(FloeTypes[Settings.TypeID].Wave);
+            Effects::Set(FloeTypes[TypeID].Wave);
             TmrStateEnd.StartOrRestart(TIME_S2I(DURATION_OF_WAVE_S));
             break;
         case stateKnock:
             Printf("Set Knock\r");
-            Effects::Set(FloeTypes[Settings.TypeID].Knock);
+            Effects::Set(FloeTypes[TypeID].Knock);
             TmrStateEnd.StartOrRestart(TIME_S2I(DURATION_OF_KNOCK_S));
             break;
         case statePressed:
             Printf("Set Pressed\r");
-            Effects::Set(FloeTypes[Settings.TypeID].Press);
+            Effects::Set(FloeTypes[TypeID].Press);
             TmrStateEnd.StartOrRestart(TIME_S2I(DURATION_OF_PRESS_S));
             break;
     } // switch
@@ -146,21 +171,21 @@ void OnCmd(Shell_t *PShell) {
     else if(PCmd->NameIs("Version")) PShell->Print("%S %S\r", APP_NAME, XSTRINGIFY(BUILD_TIME));
 
     else if(PCmd->NameIs("Idle"))  Effects::Set(EffIdle);
-    else if(PCmd->NameIs("Wave"))  Effects::Set(FloeTypes[Settings.TypeID].Wave);
-    else if(PCmd->NameIs("Knock")) Effects::Set(FloeTypes[Settings.TypeID].Knock);
-    else if(PCmd->NameIs("Press")) Effects::Set(FloeTypes[Settings.TypeID].Press);
+    else if(PCmd->NameIs("Wave"))  Effects::Set(FloeTypes[TypeID].Wave);
+    else if(PCmd->NameIs("Knock")) Effects::Set(FloeTypes[TypeID].Knock);
+    else if(PCmd->NameIs("Press")) Effects::Set(FloeTypes[TypeID].Press);
 
-    else if(PCmd->NameIs("Set")) {
-        uint32_t NewType;
-        if(PCmd->GetNext<uint32_t>(&NewType) == retvOk) {
-            if(NewType < TYPE_CNT) {
-                Settings.TypeID = NewType;
-                Settings.Save();
-            }
-            else PShell->BadParam();
-        }
-        else PShell->CmdError();
-    }
+//    else if(PCmd->NameIs("Set")) {
+//        uint32_t NewType;
+//        if(PCmd->GetNext<uint32_t>(&NewType) == retvOk) {
+//            if(NewType < TYPE_CNT) {
+//                TypeID = NewType;
+//                Settings.Save();
+//            }
+//            else PShell->BadParam();
+//        }
+//        else PShell->CmdError();
+//    }
 
     else PShell->CmdUnknown();
 }

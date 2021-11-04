@@ -95,21 +95,21 @@ private:
 public:
     EvtMsgId_t EvtId;
     TmrKLType_t TmrType;
-    void StartI() { chVTSetI(&Tmr, Period, TmrKLCallback, this); }  // Will be reset before start
+    void StartOrRestartI() { chVTSetI(&Tmr, Period, TmrKLCallback, this); }  // Will be reset before start
     void StartOrRestart() {
         chSysLock();
-        StartI();
+        StartOrRestartI();
         chSysUnlock();
     }
     void StartOrRestart(sysinterval_t NewPeriod) {
         chSysLock();
         Period = NewPeriod;
-        StartI();
+        StartOrRestartI();
         chSysUnlock();
     }
     void StartIfNotRunning() {
         chSysLock();
-        if(!chVTIsArmedI(&Tmr)) StartI();
+        if(!chVTIsArmedI(&Tmr)) StartOrRestartI();
         chSysUnlock();
     }
     void Stop() { chVTReset(&Tmr); }
@@ -346,8 +346,10 @@ static inline void PinSetupAlterFunc(
 #define PIN2IRQ_CHNL(Pin)   (((Pin) > 3)? EXTI4_15_IRQn : (((Pin) > 1)? EXTI2_3_IRQn : EXTI0_1_IRQn))
 
 // IRQ handlers
+typedef void (*ftVoidRiseFall)(RiseFall_t RiseFall);
+
 extern "C" {
-extern ftVoidVoid ExtiIrqHandler_0_1, ExtiIrqHandler_2_3, ExtiIrqHandler_4_15;
+extern ftVoidRiseFall ExtiIrqHandler_0_1, ExtiIrqHandler_2_3, ExtiIrqHandler_4_15;
 }
 
 class PinIrq_t {
@@ -355,7 +357,7 @@ public:
     GPIO_TypeDef *PGpio;
     uint16_t PinN;
     PinPullUpDown_t PullUpDown;
-    PinIrq_t(GPIO_TypeDef *APGpio, uint16_t APinN, PinPullUpDown_t APullUpDown, ftVoidVoid PIrqHandler) :
+    PinIrq_t(GPIO_TypeDef *APGpio, uint16_t APinN, PinPullUpDown_t APullUpDown, ftVoidRiseFall PIrqHandler) :
         PGpio(APGpio), PinN(APinN), PullUpDown(APullUpDown) {
         if(APinN == 0 or APinN == 1) ExtiIrqHandler_0_1 = PIrqHandler;
         else if(APinN == 2 or APinN == 3) ExtiIrqHandler_2_3 = PIrqHandler;

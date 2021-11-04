@@ -13,7 +13,7 @@
 
 static thread_reference_t ThdRef = nullptr;
 #define LIS_FIFO_LVL        27
-void AcgIrqHandler();
+void AcgIrqHandler(RiseFall_t);
 static const PinIrq_t IIrq{ACG_IRQ_PIN, pudPullDown, AcgIrqHandler};
 
 #if 1 // =========================== Vector ====================================
@@ -56,7 +56,7 @@ public:
     }
 
     int32_t LengthPow2() { return x[0]*x[0] + x[1]*x[1] + x[2]*x[2]; }
-} __attribute__((packed));
+};
 
 int32_t DiffLen(Acc_t &v1, Acc_t &v2) {
     int32_t dif, sum = 0;
@@ -91,7 +91,7 @@ static uint32_t KnockDuration = 0, IdleDuration = 0;
 // Wave
 #define WAVE_DUR_MIN    180
 #define WAVE_DUR_MAX    2007
-#define WAVE_DEV_MIN    540
+#define WAVE_DEV_MIN    810
 
 class CheckWave_t {
 private:
@@ -119,7 +119,7 @@ public:
 static CheckWave_t ChWave0, ChWave1;
 
 static inline void Update(Acc_t &vNew, Acc_t &vPrev) {
-    vNew.Print();
+//    vNew.Print();
     // ==== Knocking ====
     uint32_t DifLen = DiffLen(vNew, vPrev);
 
@@ -294,13 +294,13 @@ uint8_t FloeMotionInit() {
     if(b) ReadData();
     Printf("Lis init done\r");
 #endif
-    chThdCreateStatic(waAcgThread, sizeof(waAcgThread), NORMALPRIO, (tfunc_t)AcgThread, NULL);
+    chThdCreateStatic(waAcgThread, sizeof(waAcgThread), HIGHPRIO, (tfunc_t)AcgThread, NULL);
     IIrq.Init(risefallRising);
     IIrq.EnableIrq(IRQ_PRIO_MEDIUM);
     return retvOk;
 }
 
-void AcgIrqHandler() {
+void AcgIrqHandler(RiseFall_t) {
     chSysLockFromISR();
     chThdResumeI(&ThdRef, MSG_OK);
     chSysUnlockFromISR();

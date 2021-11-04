@@ -127,7 +127,7 @@ void TmrKLCallback(void *p) {
     chSysLockFromISR();
     TmrKL_t* PTmr = (TmrKL_t*)p;
     EvtQMain.SendNowOrExitI(EvtMsg_t(PTmr->EvtId));
-    if(PTmr->TmrType == tktPeriodic) PTmr->StartI();
+    if(PTmr->TmrType == tktPeriodic) PTmr->StartOrRestartI();
     chSysUnlockFromISR();
 }
 #endif
@@ -360,29 +360,50 @@ void STM32_DMA1_CH4567_HANDLER() {
 #if 1 // =========================== External IRQ ==============================
 // IRQ handlers
 extern "C" {
-ftVoidVoid ExtiIrqHandler_0_1, ExtiIrqHandler_2_3, ExtiIrqHandler_4_15;
+ftVoidRiseFall ExtiIrqHandler_0_1, ExtiIrqHandler_2_3, ExtiIrqHandler_4_15;
 
 void STM32_EXTI0_1_HANDLER() {
     OSAL_IRQ_PROLOGUE();
-    EXTI->RPR1 = (1<<1) | (1<<0);
-    EXTI->FPR1 = (1<<1) | (1<<0);
-    if(ExtiIrqHandler_0_1 != nullptr) ExtiIrqHandler_0_1();
+    RiseFall_t RiseFall = risefallNone;
+    if(EXTI->RPR1 & 0b11UL) {
+        EXTI->RPR1 = 0b11UL;
+        RiseFall = risefallRising;
+    }
+    if(EXTI->FPR1 & 0b11UL) {
+        EXTI->FPR1 = 0b11UL;
+        RiseFall = (RiseFall == risefallRising)? risefallBoth : risefallFalling;
+    }
+    if(ExtiIrqHandler_0_1 != nullptr) ExtiIrqHandler_0_1(RiseFall);
     OSAL_IRQ_EPILOGUE();
 }
 
 void STM32_EXTI2_3_HANDLER() {
     OSAL_IRQ_PROLOGUE();
-    EXTI->RPR1 = (1<<3) | (1<<2);
-    EXTI->FPR1 = (1<<3) | (1<<2);
-    if(ExtiIrqHandler_2_3 != nullptr) ExtiIrqHandler_2_3();
+    RiseFall_t RiseFall = risefallNone;
+    if(EXTI->RPR1 & 0b1100UL) {
+        EXTI->RPR1 = 0b1100UL;
+        RiseFall = risefallRising;
+    }
+    if(EXTI->FPR1 & 0b1100UL) {
+        EXTI->FPR1 = 0b1100UL;
+        RiseFall = (RiseFall == risefallRising)? risefallBoth : risefallFalling;
+    }
+    if(ExtiIrqHandler_2_3 != nullptr) ExtiIrqHandler_2_3(RiseFall);
     OSAL_IRQ_EPILOGUE();
 }
 
 void STM32_EXTI4_15_HANDLER() {
     OSAL_IRQ_PROLOGUE();
-    EXTI->RPR1 = 0xFFF0;
-    EXTI->FPR1 = 0xFFF0;
-    if(ExtiIrqHandler_4_15 != nullptr) ExtiIrqHandler_4_15();
+    RiseFall_t RiseFall = risefallNone;
+    if(EXTI->RPR1 & 0xFFF0) {
+        EXTI->RPR1 = 0xFFF0;
+        RiseFall = risefallRising;
+    }
+    if(EXTI->FPR1 & 0xFFF0) {
+        EXTI->FPR1 = 0xFFF0;
+        RiseFall = (RiseFall == risefallRising)? risefallBoth : risefallFalling;
+    }
+    if(ExtiIrqHandler_4_15 != nullptr) ExtiIrqHandler_4_15(RiseFall);
     OSAL_IRQ_EPILOGUE();
 }
 
