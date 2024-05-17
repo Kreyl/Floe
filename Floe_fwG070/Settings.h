@@ -5,7 +5,8 @@
  *      Author: layst
  */
 
-#pragma once
+#ifndef SETTINGS_H__
+#define SETTINGS_H__
 
 #include "SaveToFlash.h"
 #include "kl_crc.h"
@@ -40,3 +41,5 @@ struct Settings_t {
 } __attribute__((packed, aligned(8)));
 
 extern Settings_t Settings;
+
+#endif //SETTINGS_H__

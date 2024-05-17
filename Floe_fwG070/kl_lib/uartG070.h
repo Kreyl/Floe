@@ -5,7 +5,8 @@
  *      Author: kreyl
  */
 
-#pragma once
+#ifndef UARTG070_H__
+#define UARTG070_H__
 
 #include "kl_libG070.h"
 #include <cstring>
@@ -117,3 +118,5 @@ public:
 //    void IStartTransmissionIfNotYet() { BaseUart_t::IStartTransmissionIfNotYet(); }
 //    void IRxTask();
 //};
+
+#endif //UARTG070_H__

@@ -46,7 +46,7 @@ void BtnIrqHandler(RiseFall_t RiseFall) {
 static const PinIrq_t ButtonPin{BTN_PIN, pudPullDown, BtnIrqHandler};
 #endif
 
-int main(void) {
+void main(void) {
     ClockInit();
     // Start Watchdog. Will reset in main thread by periodic 1 sec events.
 //    Iwdg::InitAndStart(4500);

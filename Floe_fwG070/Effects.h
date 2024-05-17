@@ -5,7 +5,8 @@
  *      Author: layst
  */
 
-#pragma once
+#ifndef EFFECTS_H__
+#define EFFECTS_H__
 
 #include "color.h"
 
@@ -29,12 +30,12 @@ public:
     }
 
     Effect_t() {}
-    Effect_t(uint32_t SmoothValue, ColorHSV_t Clr0) :
-        SmoothValue(SmoothValue) {
+    Effect_t(uint32_t ASmoothValue, ColorHSV_t Clr0) :
+        SmoothValue(ASmoothValue) {
         ClrCnt = 1;
         ClrArr[0] = Clr0;
     }
-    Effect_t(uint32_t SmoothValue, ColorHSV_t Clr0, ColorHSV_t Clr1) : SmoothValue(SmoothValue) {
+    Effect_t(uint32_t ASmoothValue, ColorHSV_t Clr0, ColorHSV_t Clr1) : SmoothValue(ASmoothValue) {
         ClrCnt = 2;
         ClrArr[0] = Clr0;
         ClrArr[1] = Clr1;
@@ -51,3 +52,5 @@ namespace Effects {
     void Set(Effect_t &Eff);
     void Blink(ColorHSV_t Clr);
 };
+
+#endif //EFFECTS_H__

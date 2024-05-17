@@ -5,7 +5,8 @@
  *      Author: layst
  */
 
-#pragma once
+#ifndef KL_LIBG070_H__
+#define KL_LIBG070_H__
 
 #include "board.h"
 #include <stdint.h>
@@ -947,3 +948,5 @@ void DisableInDebug();
 
 };
 #endif
+
+#endif //KL_LIBG070_H__

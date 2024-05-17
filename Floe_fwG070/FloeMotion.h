@@ -5,10 +5,13 @@
  *      Author: layst
  */
 
-#pragma once
+#ifndef FLOEMOTION_H__
+#define FLOEMOTION_H__
 
 #include <inttypes.h>
 
 #define acgi2c  i2c2
 
 uint8_t FloeMotionInit();
+
+#endif //FLOEMOTION_H__

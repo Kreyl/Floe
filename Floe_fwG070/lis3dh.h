@@ -5,7 +5,8 @@
  *      Author: Kreyl
  */
 
-#pragma once
+#ifndef LIS3DH_H__
+#define LIS3DH_H__
 
 #include "kl_i2cG070.h"
 #include "uartG070.h"
@@ -116,3 +117,5 @@ PinIrq_t LisIrq(ACC_INT_PIN, &Lis);
 ...
 LisIrq.EnableIrq(IRQ_PRIO_MEDIUM);
 */
+
+#endif //LIS3DH_H__

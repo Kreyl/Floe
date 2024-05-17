@@ -5,7 +5,8 @@
  *      Author: layst
  */
 
-#pragma once
+#ifndef FLOETYPES_H__
+#define FLOETYPES_H__
 
 #define TYPE_CNT            12
 
@@ -46,3 +47,5 @@ FloeEffs_t FloeTypes[] = {
         { {SMOOTH_MID,  hsvMagenta, hsvBlue    },  {SMOOTH_MID,  hsvCyan               }, EffBad,  "Bad 4"      }, // 10
         { {SMOOTH_MID,  hsvMagenta, hsvGreen   },  {SMOOTH_MID,  hsvCyan,    hsvBlue   }, EffBad,  "Bad 5"      }, // 11
 };
+
+#endif //FLOETYPES_H__

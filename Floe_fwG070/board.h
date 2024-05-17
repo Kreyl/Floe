@@ -1,8 +1,11 @@
-#pragma once
+#ifndef BOARD_H__
+#define BOARD_H__
 
 // ==== General ====
 #define BOARD_NAME          "Floe v1"
 #define APP_NAME            "FLoe"
+
+#define STM32G070xx
 
 #define LSE_FREQ_HZ     32768   // Left it here even if not used
 
@@ -151,3 +154,5 @@
      uartclkPCLK
 
 #endif
+
+#endif //BOARD_H__

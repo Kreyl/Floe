@@ -23,7 +23,7 @@ SECTIONS
         KEEP(*(.vectors))
     } > VECTORS_FLASH AT > VECTORS_FLASH_LMA
 
-    .xtors : ALIGN(4)
+    .xtors (READONLY) : ALIGN(4)
     {
         __init_array_base__ = .;
         KEEP(*(SORT(.init_array.*)))
@@ -55,7 +55,7 @@ SECTIONS
         __rodata_end__ = .;
     } > RODATA_FLASH AT > RODATA_FLASH_LMA
 
-    .ARM.extab :
+    .ARM.extab (READONLY) :
     {
         *(.ARM.extab* .gnu.linkonce.armextab.*)
     } > VARIOUS_FLASH AT > VARIOUS_FLASH_LMA

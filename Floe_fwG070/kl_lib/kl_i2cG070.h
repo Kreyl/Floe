@@ -1,4 +1,5 @@
-#pragma once
+#ifndef KL_I2CG070_H__
+#define KL_I2CG070_H__
 
 #include "kl_libG070.h"
 #include "ch.h"
@@ -61,3 +62,5 @@ extern i2c_t i2c1
 #if I2C2_ENABLED
 extern i2c_t i2c2;
 #endif
+
+#endif //KL_I2CG070_H__

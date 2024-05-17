@@ -5,7 +5,8 @@
  *      Author: Kreyl
  */
 
-#pragma once
+#ifndef SAVETOFLASH_H__
+#define SAVETOFLASH_H__
 
 #include "inttypes.h"
 #include "board.h"
@@ -20,3 +21,5 @@ uint8_t Write(uint32_t Addr, void *ptr, uint32_t ByteSz);
 uint8_t WriteUnaligned(uint32_t Addr, void *ptr, uint32_t Sz);
 
 }
+
+#endif //SAVETOFLASH_H__

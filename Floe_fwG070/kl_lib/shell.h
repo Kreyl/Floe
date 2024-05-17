@@ -5,8 +5,10 @@
  *      Author: Kreyl
  */
 
-#pragma once
+#ifndef SHELL_H__
+#define SHELL_H__
 
+#include "board.h"
 #include <cstring>
 #include <stdarg.h>
 #include "kl_string.h"
@@ -15,7 +17,6 @@
 #else
 #include "kl_lib.h"
 #endif
-#include "board.h"
 #include "ch.h"
 
 #define DELIMITERS              " ,"
@@ -225,11 +226,11 @@ public:
         if(PCmd->GetParams<int32_t>(2, &Indx, &Value) == retvOk) {...}
         else PShell->Ack(retvCmdError);    */
     template <typename T>
-    uint8_t GetParams(uint8_t Cnt, ...) {
+    uint8_t GetParams(uint8_t ACnt, ...) {
         uint8_t Rslt = retvOk;
         va_list args;
-        va_start(args, Cnt);
-        while(Cnt--) {
+        va_start(args, ACnt);
+        while(ACnt--) {
             T* ptr = va_arg(args, T*);
             Rslt = GetNext<T>(ptr);
             if(Rslt != retvOk) break;
@@ -370,3 +371,5 @@ extern "C" {
 void PrintfC(const char *format, ...);
 //void PrintfCNow(const char *format, ...);
 }
+
+#endif //SHELL_H__
